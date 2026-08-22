@@ -1,0 +1,50 @@
+{
+  "name": "@locatex/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -b tsconfig.json",
+    "start": "node dist/src/server.js",
+    "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate:up": "migrate-mongo up -f migrate-mongo-config.cjs",
+    "migrate:down": "migrate-mongo down -f migrate-mongo-config.cjs",
+    "migrate:status": "migrate-mongo status -f migrate-mongo-config.cjs",
+    "worker": "tsx watch src/worker.ts",
+    "worker:start": "node dist/src/worker.js"
+  },
+  "dependencies": {
+    "@locatex/contracts": "workspace:*",
+    "bullmq": "^5.34.5",
+    "compression": "^1.7.5",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.0.1",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.4.2",
+    "mongoose": "^8.9.2",
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "ulid": "^2.3.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.7.5",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/supertest": "^6.0.2",
+    "dotenv": "^17.4.2",
+    "migrate-mongo": "^11.0.0",
+    "mongodb-memory-server": "^10.1.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

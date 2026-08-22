@@ -1,0 +1,30 @@
+{
+  "name": "locatex",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @locatex/api --filter @locatex/web dev",
+    "build": "pnpm --filter @locatex/contracts build && pnpm --filter @locatex/web build && pnpm --filter @locatex/api build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "migrate:up": "pnpm --filter @locatex/api migrate:up",
+    "migrate:down": "pnpm --filter @locatex/api migrate:down",
+    "worker": "pnpm --filter @locatex/api worker",
+    "dev:api": "pnpm --filter @locatex/api dev",
+    "dev:web": "pnpm --filter @locatex/web dev",
+    "start": "SERVE_WEB=true pnpm --filter @locatex/api start"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "type": "module"
+}

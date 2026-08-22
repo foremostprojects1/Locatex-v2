@@ -1,0 +1,275 @@
+[
+  {
+    "file": "index.html",
+    "name": "Home",
+    "route": "/",
+    "layout": "main",
+    "header": "transparent",
+    "bodyClass": "body",
+    "cards": 42
+  },
+  {
+    "file": "home-02.html",
+    "name": "HomeV2",
+    "route": "/home-02",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 36
+  },
+  {
+    "file": "home-03.html",
+    "name": "HomeV3",
+    "route": "/home-03",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 36
+  },
+  {
+    "file": "home-04.html",
+    "name": "HomeV4",
+    "route": "/home-04",
+    "layout": "main",
+    "bodyClass": "body counter-scroll",
+    "cards": 36
+  },
+  {
+    "file": "home-05.html",
+    "name": "HomeV5",
+    "route": "/home-05",
+    "layout": "main",
+    "header": "style-2",
+    "bodyClass": "body",
+    "cards": 36
+  },
+  {
+    "file": "home-06.html",
+    "name": "HomeV6",
+    "route": "/home-06",
+    "layout": "bare",
+    "header": "transparent",
+    "bodyClass": "body",
+    "cards": 12
+  },
+  {
+    "file": "property-halfmap-grid.html",
+    "name": "PropertyHalfmapGrid",
+    "route": "/property-halfmap-grid",
+    "layout": "bare",
+    "bodyClass": "body",
+    "cards": 12
+  },
+  {
+    "file": "property-halfmap-list.html",
+    "name": "PropertyHalfmapList",
+    "route": "/property-halfmap-list",
+    "layout": "bare",
+    "bodyClass": "body",
+    "cards": 12
+  },
+  {
+    "file": "topmap-grid.html",
+    "name": "TopmapGrid",
+    "route": "/topmap-grid",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 19
+  },
+  {
+    "file": "topmap-list.html",
+    "name": "TopmapList",
+    "route": "/topmap-list",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 19
+  },
+  {
+    "file": "sidebar-grid.html",
+    "name": "SidebarGrid",
+    "route": "/sidebar-grid",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 20
+  },
+  {
+    "file": "sidebar-list.html",
+    "name": "SidebarList",
+    "route": "/sidebar-list",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 20
+  },
+  {
+    "file": "property-details-v1.html",
+    "name": "PropertyDetailsV1",
+    "route": "/property-details-v1",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "property-details-v2.html",
+    "name": "PropertyDetailsV2",
+    "route": "/property-details-v2",
+    "layout": "main",
+    "bodyClass": "body bg-surface",
+    "cards": 0
+  },
+  {
+    "file": "property-details-v3.html",
+    "name": "PropertyDetailsV3",
+    "route": "/property-details-v3",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "property-details-v4.html",
+    "name": "PropertyDetailsV4",
+    "route": "/property-details-v4",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "about-us.html",
+    "name": "AboutUs",
+    "route": "/about-us",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "our-service.html",
+    "name": "OurService",
+    "route": "/our-service",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "pricing.html",
+    "name": "Pricing",
+    "route": "/pricing",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "contact.html",
+    "name": "Contact",
+    "route": "/contact",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "faq.html",
+    "name": "Faq",
+    "route": "/faq",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "privacy-policy.html",
+    "name": "PrivacyPolicy",
+    "route": "/privacy-policy",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "blog.html",
+    "name": "Blog",
+    "route": "/blog",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "blog-grid.html",
+    "name": "BlogGrid",
+    "route": "/blog-grid",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "blog-detail.html",
+    "name": "BlogDetail",
+    "route": "/blog-detail",
+    "layout": "main",
+    "bodyClass": "body",
+    "cards": 0
+  },
+  {
+    "file": "dashboard.html",
+    "name": "Dashboard",
+    "route": "/dashboard",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface counter-scroll",
+    "innerClass": "main-content-inner",
+    "footerClass": "footer-dashboard",
+    "cards": 0
+  },
+  {
+    "file": "add-property.html",
+    "name": "AddProperty",
+    "route": "/add-property",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface",
+    "innerClass": "main-content-inner",
+    "footerClass": "footer-dashboard",
+    "cards": 0
+  },
+  {
+    "file": "my-property.html",
+    "name": "MyProperty",
+    "route": "/my-property",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface",
+    "innerClass": "main-content-inner wrap-dashboard-content",
+    "footerClass": "footer-dashboard",
+    "cards": 0
+  },
+  {
+    "file": "my-favorites.html",
+    "name": "MyFavorites",
+    "route": "/my-favorites",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface",
+    "innerClass": "main-content-inner",
+    "footerClass": "footer-dashboard",
+    "cards": 0
+  },
+  {
+    "file": "reviews.html",
+    "name": "Reviews",
+    "route": "/reviews",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface",
+    "innerClass": "main-content-inner",
+    "footerClass": "footer-dashboard footer-dashboard-2",
+    "cards": 0
+  },
+  {
+    "file": "message.html",
+    "name": "Message",
+    "route": "/message",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface",
+    "innerClass": "main-content-inner",
+    "footerClass": "footer-dashboard footer-dashboard-2",
+    "cards": 0
+  },
+  {
+    "file": "my-profile.html",
+    "name": "MyProfile",
+    "route": "/my-profile",
+    "layout": "dashboard",
+    "bodyClass": "body bg-surface",
+    "innerClass": "main-content-inner wrap-dashboard-content-2",
+    "footerClass": "footer-dashboard",
+    "cards": 0
+  }
+]
