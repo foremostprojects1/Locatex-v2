@@ -10,9 +10,13 @@ Design documents, decisions and the task board live in [`docs/`](docs).
 ```bash
 pnpm install
 cp apps/api/.env.example apps/api/.env      # fill in MONGODB_URI and JWT_SECRET
-docker compose up -d                        # MongoDB (replica set) + Redis
 pnpm dev                                    # API :8080 and web :5173 together
 ```
+
+**Services you need running.** MongoDB comes from **Atlas** — point `MONGODB_URI` at a
+development cluster; Atlas is a replica set already, which the submit and approve flows
+need for transactions. Redis is expected on `redis://127.0.0.1:6379` for the job queue
+(`sudo apt install redis-server`, or set `REDIS_URL` to a hosted instance).
 
 In development the two run separately — Vite serves the app on `:5173` and proxies `/api`
 to the API on `:8080`, so the browser still sees a single origin and cookies stay
@@ -25,14 +29,18 @@ pnpm build     # contracts → web → api
 pnpm start     # SERVE_WEB=true; the API serves the app on :8080
 ```
 
-Or as a container:
+That is the whole deployment: one Node process, one port. On a Node host (Render, Railway,
+a VPS under systemd or pm2) configure it as:
 
-```bash
-docker build -t locatex .
-docker run -p 8080:8080 --env-file apps/api/.env locatex
-```
+| Setting | Value |
+| --- | --- |
+| Build command | `pnpm install --frozen-lockfile && pnpm build` |
+| Start command | `pnpm start` |
+| Node version | 22 (pinned in `.node-version` and `engines`) |
+| Health check | `GET /healthz` |
 
-The background worker runs from the same image: `docker run … node apps/api/dist/worker.js`.
+The background worker is a second process from the same checkout — `pnpm worker` — and is
+only needed once email, chat digests and Drive uploads land in Phase 6 onward.
 
 ### How the single-process mode behaves
 

@@ -429,7 +429,7 @@ becomes the default and the API surface does not change.
 
 ## 10. Deployment considerations
 
-- **Environments:** local (docker compose: Postgres + Redis + MailHog), staging, production.
+- **Environments:** local (Atlas dev cluster + local Redis), staging, production.
   Separate Google projects and separate Drive roots per environment.
 - **Hosting:** API as a container (Render/Fly/Cloud Run); frontend static on Vercel/CDN.
   Keep both under `*.locatex.in` so session cookies stay first-party.

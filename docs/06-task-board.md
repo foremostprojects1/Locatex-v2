@@ -26,7 +26,6 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-docker compose up -d          # Mongo (replica set) + Redis
 pnpm test                     # 33 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
@@ -59,7 +58,7 @@ Then continue at the first `todo` below. A MongoDB Atlas URI and a 32-character
 | P1.7 | MongoDB connection (Atlas), `strict: 'throw'` base schema options | `done` | `/readyz` reports db up |
 | P1.8 | `migrate-mongo` set up, first migration (indexes) | `done` | `pnpm migrate:up` runs clean |
 | P1.9 | Redis + BullMQ bootstrap, one no-op queue + worker | `done` | Worker logs a processed job |
-| P1.10 | Vitest + Supertest harness; docker-compose for local mongo/redis | `done` | `pnpm test` green |
+| P1.10 | Vitest + Supertest harness | `done` | `pnpm test` green |
 | P1.11 | ESLint + Prettier shared config | `done` | `pnpm lint` clean |
 | P1.12 | GitHub Actions: install → lint → typecheck → test | `done` | Workflow file committed |
 | P1.13 | `packages/contracts` with the first shared zod schemas | `done` | Imported by api and web |
@@ -76,7 +75,7 @@ Then continue at the first `todo` below. A MongoDB Atlas URI and a 32-character
   guard against v1's silent field-drop that destroyed uploaded documents.
 - `req.id` is typed by pino-http as `string | number`; use `requestIdOf(req)` rather than
   augmenting Express, which conflicts with it.
-- Local dependencies come from `docker-compose.yml` — Mongo runs as a **single-node replica
+- Mongo comes from an **Atlas** cluster (a replica
   set** because the submit and approve flows use transactions, which standalone Mongo refuses.
 - The worker is a second process from the same image (`pnpm worker`). Every queue already
   exists (`email`, `chatDigest`, `drive`, `maintenance`); handlers are registered per feature.
@@ -94,7 +93,7 @@ Added after the decision to ship API and web as a single unit.
 | P1b.5 | CSP applied when the API serves the page | `done` | Page renders with zero console errors |
 | P1b.6 | Same-origin CORS fix (was a 500 on every asset) | `done` | 3 regression tests |
 | P1b.7 | `QUEUE_PREFIX` namespacing for BullMQ | `done` | Queue test runs in its own namespace |
-| P1b.8 | Dockerfile — one image, API + app + worker entrypoint | `done` | Multi-stage build defined |
+| P1b.8 | Deploy as one Node process (no container) | `done` | `pnpm build && pnpm start` verified end to end |
 
 ## Phase 2 — Auth & roles · `wip`
 
