@@ -17,13 +17,22 @@ Status key: `todo` · `wip` · `done` · `blocked`
 | | |
 | --- | --- |
 | **Current phase** | Phase 2 — Auth & roles |
-| **Last completed** | Phase 1 — Foundations, all 13 tasks (33 tests green) |
+| **Last completed** | Phase 1b — One deployment: git repo, web app in `apps/web`, API serves the built site (21 API + 12 contract tests green) |
 | **Next action** | P2.1 — User model: 3 roles, status, token version, profile subdocuments |
 | **Blocked on** | nothing |
 
-**To resume:** `cd Loca/locatex && pnpm install && pnpm test` (33 tests should pass), then
-continue at the first `todo` in the table below. A MongoDB Atlas URI and a 32-character
-`JWT_SECRET` in `apps/api/.env` are needed before `pnpm dev` will boot.
+**To resume:**
+
+```bash
+cd Loca/locatex
+pnpm install
+docker compose up -d          # Mongo (replica set) + Redis
+pnpm test                     # 33 tests should pass
+pnpm build && pnpm start      # the whole product on http://localhost:8080
+```
+
+Then continue at the first `todo` below. A MongoDB Atlas URI and a 32-character
+`JWT_SECRET` in `apps/api/.env` are needed before `pnpm dev` will boot against real data.
 
 ---
 
@@ -71,6 +80,21 @@ continue at the first `todo` in the table below. A MongoDB Atlas URI and a 32-ch
   set** because the submit and approve flows use transactions, which standalone Mongo refuses.
 - The worker is a second process from the same image (`pnpm worker`). Every queue already
   exists (`email`, `chatDigest`, `drive`, `maintenance`); handlers are registered per feature.
+
+## Phase 1b — One deployment · `done`
+
+Added after the decision to ship API and web as a single unit.
+
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P1b.1 | Git repository initialised, web app moved to `apps/web` | `done` | 438 files tracked, no `node_modules`/`dist`/`.env` |
+| P1b.2 | API serves `apps/web/dist`; `/api` keeps its JSON contract | `done` | 9 integration tests |
+| P1b.3 | SPA fallback for client-side routes | `done` | `/faq` renders on a hard refresh |
+| P1b.4 | Cache policy: assets immutable, `index.html` never cached | `done` | Response headers asserted |
+| P1b.5 | CSP applied when the API serves the page | `done` | Page renders with zero console errors |
+| P1b.6 | Same-origin CORS fix (was a 500 on every asset) | `done` | 3 regression tests |
+| P1b.7 | `QUEUE_PREFIX` namespacing for BullMQ | `done` | Queue test runs in its own namespace |
+| P1b.8 | Dockerfile — one image, API + app + worker entrypoint | `done` | Multi-stage build defined |
 
 ## Phase 2 — Auth & roles · `wip`
 
@@ -166,7 +190,6 @@ migration
 
 | Item | Why parked |
 | --- | --- |
-| Move `homelengo-react` into `locatex/apps/web` | The branded home page is approved and working; the move is mechanical and can happen once the API exists. Until then the web app builds where it is. |
 | Plot boundary polygons | Post-launch; the `boundary` field exists from day one so no migration is needed. |
 | Gujarati UI | Awaiting a decision; strings are kept out of components to make it cheap later. |
 | Storage upgrade (Google One) | Client declined. Mitigated by documents-only-to-Drive and the quota monitor. |
