@@ -9,6 +9,9 @@ import { logger } from '../infrastructure/observability/logger.js';
 import { requestId } from './middleware/requestId.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { healthRouter } from './routes/health.js';
+import { authRouter } from './routes/auth.js';
+import { attachPrincipal } from './middleware/authenticate.js';
+import { csrfProtection } from './middleware/csrf.js';
 import { defaultWebDistPath, mountWebApp } from './serveWeb.js';
 
 /** `new URL()` throws on a malformed value; config validation already guards these. */
@@ -87,6 +90,11 @@ export function createApp(): Express {
   app.use(cookieParser());
 
   app.use(healthRouter);
+
+  // Identify the caller, then verify that unsafe requests came from our own app.
+  app.use(attachPrincipal);
+  app.use('/api', csrfProtection);
+  app.use('/api/v1/auth', authRouter);
 
   // The web app is mounted last: API routes always win, and an unknown /api/* path still
   // falls through to the JSON 404 below rather than being answered with index.html.

@@ -8,7 +8,9 @@ import { z } from 'zod';
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(8080),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  LOG_LEVEL: z
+    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+    .default('info'),
 
   APP_BASE_URL: z.string().url().default('http://localhost:5173'),
   API_BASE_URL: z.string().url().default('http://localhost:8080'),
@@ -40,6 +42,14 @@ const schema = z.object({
     .default('false')
     .transform((value) => value === 'true'),
   WEB_DIST_PATH: z.string().optional(),
+
+  /**
+   * Credential-endpoint rate limits, per IP. Configurable because the right number depends
+   * on whether the app sits behind a shared NAT, and because tests need them out of the way.
+   */
+  AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+  AUTH_RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().positive().default(15),
+  OTP_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_ACCESS_TTL: z.string().default('15m'),

@@ -16,10 +16,10 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 2 — Auth & roles |
-| **Last completed** | Phase 1b — One deployment: git repo, web app in `apps/web`, API serves the built site (21 API + 12 contract tests green) |
-| **Next action** | P2.1 — User model: 3 roles, status, token version, profile subdocuments |
-| **Blocked on** | nothing |
+| **Current phase** | Phase 3 — Reference data (Gujarat) |
+| **Last completed** | Phase 2 — Auth & roles: registration, both verification channels, JWT cookie sessions with rotation, CSRF, RBAC, broker upgrade (50 API + 21 contract tests green) |
+| **Next action** | P3.1 — Import the LGD district / taluka / village hierarchy for Gujarat |
+| **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
 **To resume:**
 
@@ -96,18 +96,25 @@ Added after the decision to ship API and web as a single unit.
 | P1b.7 | `QUEUE_PREFIX` namespacing for BullMQ | `done` | Queue test runs in its own namespace |
 | P1b.8 | Deploy as one Node process (no container) | `done` | `pnpm build && pnpm start` verified end to end |
 
-## Phase 2 — Auth & roles · `wip`
+## Phase 2 — Auth & roles · `done`
 
 | # | Task | Verify by |
 | --- | --- | --- |
-| P2.1 | User model: 3 roles, status, token version, profile subdocs | Schema tests |
-| P2.2 | Register (buyer) with the brief's fields | Integration test |
-| P2.3 | **Email verification link + phone OTP — both mandatory** | Both required before login succeeds |
-| P2.4 | Login / refresh rotation / real logout, JWT httpOnly cookies | Reuse detection revokes the family |
-| P2.5 | CSRF double-submit | Write without the header is rejected |
-| P2.6 | Role guards + ownership policies | RBAC matrix test, one case per cell |
-| P2.7 | Password change (revokes other sessions) + forgot/reset | Integration tests |
-| P2.8 | Broker application → admin approval → role upgrade | Full flow test |
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P2.1 | User model: 3 roles, status, token version, profile subdocs | `done` | Strict schema; role/phone/email uniqueness tests |
+| P2.2 | Register (buyer) with the brief's fields | `done` | 5 tests, including a rejected `role: admin` attempt |
+| P2.3 | **Email link + phone OTP — both mandatory** | `done` | Login refused until both confirmed; OTP burns after 5 wrong guesses |
+| P2.4 | Login / refresh rotation / real logout, JWT httpOnly cookies | `done` | Replayed token revokes the whole family |
+| P2.5 | CSRF double-submit | `done` | 3 tests; enforced only once a session cookie exists |
+| P2.6 | Role guards + ownership policies | `done` | 5 matrix tests incl. suspension and token-version revocation |
+| P2.7 | Password change (revokes other sessions) + forgot/reset | `done` | 4 tests; reset links are single use |
+| P2.8 | Broker application → admin approval → role upgrade | `done` | Full flow: apply → approve → role changes; reject needs a reason |
+
+**Open input needed:** phone OTPs are generated, rate limited and verified, but nothing
+sends them yet — no SMS provider has been chosen (MSG91, Fast2SMS and Twilio are the usual
+options for India). The `SmsSender` port is in place, and development logs the code instead.
+A provider must be picked before real users sign up.
 
 ## Phase 3 — Reference data (Gujarat) · `todo`
 
