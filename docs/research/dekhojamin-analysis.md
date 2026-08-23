@@ -10,7 +10,10 @@ Evidence kept next to this file:
 - `screenshots/map-listings-view.png` — the split map/list page
 - `screenshots/property-boundary-polygon.png` — a plot boundary drawn on a property page
 - `dekhojamin-map-page-source.html` — saved source of `/map-property-listings`, which
-  contains the whole map implementation inline
+  contains the whole map implementation. **Their Google Maps API key has been redacted**:
+  it is a live, billable credential belonging to someone else and does not belong in our
+  repository. The key is visible to anyone who views their page source, so nothing is lost
+  by removing it here. inline
 
 ---
 
