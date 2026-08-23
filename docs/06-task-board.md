@@ -75,9 +75,10 @@ Then continue at the first `todo` below. A MongoDB Atlas URI and a 32-character
   guard against v1's silent field-drop that destroyed uploaded documents.
 - `req.id` is typed by pino-http as `string | number`; use `requestIdOf(req)` rather than
   augmenting Express, which conflicts with it.
-- Mongo comes from an **Atlas** cluster (a replica
-  set** because the submit and approve flows use transactions, which standalone Mongo refuses.
-- The worker is a second process from the same image (`pnpm worker`). Every queue already
+- Mongo comes from an **Atlas** cluster. It must be a replica set, because the submit and
+  approve flows use transactions and standalone Mongo refuses them — Atlas is one by default.
+  Redis runs locally (or hosted) on `REDIS_URL`.
+- The worker is a second process from the same checkout (`pnpm worker`). Every queue already
   exists (`email`, `chatDigest`, `drive`, `maintenance`); handlers are registered per feature.
 
 ## Phase 1b — One deployment · `done`

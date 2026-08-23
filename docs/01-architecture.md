@@ -3,6 +3,12 @@
 Companion documents: `00-requirements-analysis.md` (what was confirmed and what is open),
 `02-ui-spec.md`, `03-technical-spec.md`, `04-implementation-plan.md`.
 
+> **Two decisions post-date this document — `05-decision-log.md` wins where they differ.**
+> **D7:** the database is **MongoDB Atlas with Mongoose**, not PostgreSQL/Prisma; the layering,
+> entities and relationships below still hold, only the persistence adapter changed.
+> **Deployment:** the API serves the built web app from one Node process — no container, no
+> separately hosted frontend.
+
 ---
 
 ## 1. System architecture
@@ -431,8 +437,9 @@ becomes the default and the API surface does not change.
 
 - **Environments:** local (Atlas dev cluster + local Redis), staging, production.
   Separate Google projects and separate Drive roots per environment.
-- **Hosting:** API as a container (Render/Fly/Cloud Run); frontend static on Vercel/CDN.
-  Keep both under `*.locatex.in` so session cookies stay first-party.
+- **Hosting:** one Node process on a Node host (Render/Railway/VPS) serving both the API
+  and the built app — `pnpm build` then `pnpm start`. A single origin means session cookies
+  are first-party with no cross-site configuration.
 - **Database:** managed Postgres with PITR. Prisma migrations run as a release step,
   expand-then-contract for breaking changes.
 - **Workers:** the queue consumer runs as a second process from the same image.
