@@ -36,7 +36,7 @@ a VPS under systemd or pm2) configure it as:
 | --- | --- |
 | Build command | `pnpm install --frozen-lockfile && pnpm build` |
 | Start command | `pnpm start` |
-| Node version | 22 (pinned in `.node-version` and `engines`) |
+| Node version | 22 (`.node-version`) — 20.11+ also runs, but Node 20 is out of support |
 | Health check | `GET /healthz` |
 
 The background worker is a second process from the same checkout — `pnpm worker` — and is
@@ -67,6 +67,7 @@ nothing else changes.
 | `pnpm typecheck` | Type-check everything, tests included |
 | `pnpm test` | Vitest across the workspace |
 | `pnpm lint` / `pnpm format` | ESLint / Prettier |
+| `pnpm verify:deployable` | Builds nothing, boots the built server and checks it really serves the app and the API |
 | `pnpm migrate:up` / `migrate:down` | Mongo migrations |
 
 ## Layout

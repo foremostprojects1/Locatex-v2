@@ -10,6 +10,7 @@ import { requestId } from './middleware/requestId.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
+import { referenceRouter } from './routes/reference.js';
 import { attachPrincipal } from './middleware/authenticate.js';
 import { csrfProtection } from './middleware/csrf.js';
 import { defaultWebDistPath, mountWebApp } from './serveWeb.js';
@@ -95,6 +96,7 @@ export function createApp(): Express {
   app.use(attachPrincipal);
   app.use('/api', csrfProtection);
   app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/reference', referenceRouter);
 
   // The web app is mounted last: API routes always win, and an unknown /api/* path still
   // falls through to the JSON 404 below rather than being answered with index.html.

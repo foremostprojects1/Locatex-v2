@@ -29,3 +29,10 @@ jobs:
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017
           JWT_SECRET: ci-secret-that-is-at-least-32-characters
+
+      # "It compiles" is not "it boots and serves". This builds the real artefacts, starts
+      # the server as a host would, and checks the single deployable unit still works.
+      - run: pnpm build
+        working-directory: locatex
+      - run: pnpm verify:deployable
+        working-directory: locatex

@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "engines": {
-    "node": ">=22 <23",
+    "node": ">=20.11",
     "pnpm": ">=9"
   },
   "scripts": {
@@ -18,7 +18,8 @@
     "worker": "pnpm --filter @locatex/api worker",
     "dev:api": "pnpm --filter @locatex/api dev",
     "dev:web": "pnpm --filter @locatex/web dev",
-    "start": "SERVE_WEB=true pnpm --filter @locatex/api start"
+    "start": "SERVE_WEB=true pnpm --filter @locatex/api start",
+    "verify:deployable": "pnpm --filter @locatex/api exec tsx scripts/verify-deployable.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

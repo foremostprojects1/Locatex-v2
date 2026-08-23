@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 3 — Reference data (Gujarat) |
-| **Last completed** | Phase 2 — Auth & roles: registration, both verification channels, JWT cookie sessions with rotation, CSRF, RBAC, broker upgrade (50 API + 21 contract tests green) |
-| **Next action** | P3.1 — Import the LGD district / taluka / village hierarchy for Gujarat |
+| **Current phase** | Phase 4 — Property core |
+| **Last completed** | Phase 3 — Gujarat reference data: 34 districts, 394 talukas, 8,917 villages, 1,026 pincodes, cascade + pincode endpoints, land vocabulary (63 API + 21 contract tests green, 11 deployable checks) |
+| **Next action** | P4.1 — Property model with the status state machine |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
 **To resume:**
@@ -116,15 +116,26 @@ sends them yet — no SMS provider has been chosen (MSG91, Fast2SMS and Twilio a
 options for India). The `SmsSender` port is in place, and development logs the code instead.
 A provider must be picked before real users sign up.
 
-## Phase 3 — Reference data (Gujarat) · `todo`
+## Phase 3 — Reference data (Gujarat) · `done`
 
-| # | Task | Verify by |
-| --- | --- | --- |
-| P3.1 | Import LGD district / taluka / village for Gujarat | Row counts match the source |
-| P3.2 | Import GeoNames IN postal data, attach centroids | `363641` resolves to Morbi with a centroid |
-| P3.3 | India Post lookup service with 30-day cache | Cache hit on the second call |
-| P3.4 | `/reference/*` cascade endpoints with ETags | Cascade works for all 33 districts |
-| P3.5 | Amenity + disadvantage reference collections, **including the new attributes** | Admin can add one without a deploy |
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P3.1 | District / taluka / village hierarchy for Gujarat | `done` | 34 districts (incl. the 2013 splits and Vav-Tharad), 394 talukas, 8,917 villages — every district has talukas |
+| P3.2 | Pincode locations | `done` | Resolved from a geocoder at runtime and cached; GeoNames coordinates kept only as a hint — see below |
+| P3.3 | India Post lookup with a 30-day cache | `done` | Cross-checked and reported when it disagrees; never overwrites the broker's choice |
+| P3.4 | `/reference/*` cascade endpoints with ETags | `done` | 304 on a repeat request; prefix search on villages |
+| P3.5 | Amenity + disadvantage collections, **including the new attributes** | `done` | v1's nine carried over with `legacyValue`, plus road/water/soil/fencing/electricity |
+
+**Why the pincode design changed during the phase.** The plan said to seed centroids from
+GeoNames. Building it showed that would have been wrong: GeoNames' own readme says the
+coordinates are algorithmic, 1,343 Gujarat rows carry the lowest accuracy flag, 608 of
+1,026 pincodes give every village one identical point, and the average for 363641 lands
+about 90 km from Morbi. Seeding those would have drawn a confident circle around a number
+we do not trust. The hierarchy is seeded; the location is resolved at runtime from
+Nominatim (which returns a bounding box, so the radius is measured) and cached permanently.
+
+**Needs a human check before launch:** taluka-to-district assignments for the districts
+created after the GeoNames snapshot are curated by hand — see `docs/attribution.md`.
 
 ## Phase 4 — Property core · `todo`
 
