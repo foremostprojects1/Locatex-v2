@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { AREA_UNIT_LABEL, convertArea, formatIndianShort } from "@locatex/contracts";
 import { useListing } from "../features/listings/useListings";
 import ListingsMap from "../features/listings/ListingsMap";
+import EnquiryForm from "../features/listings/EnquiryForm";
 import { useSession } from "../hooks/useSession";
 
 /**
@@ -227,6 +228,13 @@ export default function PropertyDetail() {
               <p className="lx-note">Seen {listing.viewsCount} times</p>
             ) : null}
           </div>
+
+          {/* Only offered to someone who could actually be replied to. */}
+          {isSignedIn && listing.contact ? (
+            <div className="lx-panel">
+              <EnquiryForm propertyId={listing.id} />
+            </div>
+          ) : null}
         </aside>
       </div>
     </article>

@@ -153,6 +153,14 @@ export const PAGE_META = [
     bodyClass: "body",
   },
   {
+    route: "/my-enquiries",
+    name: "MyEnquiries",
+    layout: "dashboard",
+    bodyClass: "body bg-surface",
+    innerClass: "main-content-inner",
+    footerClass: "footer-dashboard",
+  },
+  {
     route: "/admin",
     name: "AdminDashboard",
     layout: "dashboard",

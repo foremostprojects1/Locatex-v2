@@ -172,3 +172,40 @@ describe('the featured carousel', () => {
     expect(everything.body.total).toBe(2);
   });
 });
+
+describe('what stays public', () => {
+  /**
+   * A guard on a router mounted at a shared prefix guards everything below it. Adding the
+   * buyer routes at `/api/v1` with a blanket `requireUser` once made the contact form and
+   * the news endpoint return 401 — this is the test that would have said so immediately.
+   */
+  it('never asks a visitor to sign in for something a visitor is meant to reach', async () => {
+    const open = [
+      '/api/v1/news',
+      '/api/v1/properties',
+      '/api/v1/reference/districts',
+      '/api/v1/reference/land-attributes',
+    ];
+
+    for (const path of open) {
+      const response = await request(app).get(path);
+      expect.soft(response.status, `${path} should be public`).toBe(200);
+    }
+
+    const contact = await request(app).post('/api/v1/contact').send({
+      name: 'Kiran Shah',
+      email: 'kiran@example.com',
+      subject: 'general',
+      message: 'How do I list my land with you?',
+    });
+    expect(contact.status).toBe(202);
+  });
+
+  it('still keeps the private things private', async () => {
+    const closed = ['/api/v1/me/favourites', '/api/v1/broker/enquiries', '/api/v1/admin/stats'];
+    for (const path of closed) {
+      const response = await request(app).get(path);
+      expect.soft(response.status, `${path} should need a session`).toBe(401);
+    }
+  });
+});

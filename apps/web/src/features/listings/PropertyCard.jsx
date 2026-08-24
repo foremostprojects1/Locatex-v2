@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { AREA_UNIT_LABEL, formatIndianShort } from "@locatex/contracts";
+import { useFavourites } from "./useFavourites";
 
 /**
  * One listing in a grid.
@@ -10,6 +11,7 @@ import { AREA_UNIT_LABEL, formatIndianShort } from "@locatex/contracts";
  * the other one.
  */
 export default function PropertyCard({ listing, view = "grid" }) {
+  const { isSaved, toggle, canSave } = useFavourites();
   const photo = listing.images?.find((image) => image.isPrimary) ?? listing.images?.[0];
   const place = [listing.location.village, listing.location.taluka, listing.location.district]
     .filter(Boolean)
@@ -32,6 +34,32 @@ export default function PropertyCard({ listing, view = "grid" }) {
         </span>
         {listing.isFeatured ? <span className="lx-card__badge is-featured">Featured</span> : null}
       </Link>
+
+      {/*
+        Outside the Link, not inside it: a button nested in an anchor is invalid markup and
+        a screen reader announces the whole card as one confusing control.
+      */}
+      {canSave ? (
+        <button
+          type="button"
+          className={`lx-card__save${isSaved(listing.id) ? " is-saved" : ""}`}
+          aria-label={isSaved(listing.id) ? "Remove from saved" : "Save this listing"}
+          aria-pressed={isSaved(listing.id)}
+          onClick={() => toggle(listing.id)}
+        >
+          <HeartIcon filled={isSaved(listing.id)} />
+        </button>
+      ) : (
+        <a
+          href="#modalLogin"
+          data-bs-toggle="modal"
+          className="lx-card__save"
+          aria-label="Sign in to save this listing"
+          title="Sign in to save"
+        >
+          <HeartIcon filled={false} />
+        </a>
+      )}
 
       <div className="lx-card__body">
         <h3 className="lx-card__title">
@@ -59,6 +87,20 @@ export default function PropertyCard({ listing, view = "grid" }) {
         </ul>
       </div>
     </div>
+  );
+}
+
+function HeartIcon({ filled }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path
+        d="M12 21s-7.5-4.6-9.6-9A5.3 5.3 0 0 1 12 6.2 5.3 5.3 0 0 1 21.6 12c-2.1 4.4-9.6 9-9.6 9z"
+        fill={filled ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

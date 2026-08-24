@@ -7,3 +7,4 @@ export * from './auth.js';
 export * from './property.js';
 export * from './wizard.js';
 export * from './admin.js';
+export * from './buyer.js';

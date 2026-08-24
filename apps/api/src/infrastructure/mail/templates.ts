@@ -330,6 +330,37 @@ const RENDERERS: Record<TemplateName, Renderer> = {
     };
   },
 
+  'enquiry-received': (data, context) => {
+    const name = field(data, 'fullName', 'there');
+    const title = field(data, 'title', 'one of your listings');
+    const buyer = field(data, 'buyerName', 'A buyer');
+    const phone = field(data, 'buyerPhone');
+    const message = field(data, 'message');
+    return {
+      subject: `${buyer} is asking about “${title}”`,
+      html: layout(
+        context,
+        paragraph(`Hello ${name},`) +
+          paragraph(`${buyer} has asked about “${title}”.`) +
+          (message ? quote(message) : '') +
+          // The number is in the email on purpose: a broker reading this on a phone should
+          // be one tap from answering, not one sign-in and three pages away.
+          (phone ? paragraph(`Call them on ${phone}.`) : '') +
+          button(`${context.appBaseUrl}/dashboard`, 'See the enquiry'),
+        `${buyer} is asking about one of your listings.`,
+      ),
+      text: [
+        `Hello ${name},`,
+        '',
+        `${buyer} has asked about "${title}".`,
+        ...(message ? ['', message] : []),
+        ...(phone ? ['', `Call them on ${phone}.`] : []),
+        '',
+        `${context.appBaseUrl}/dashboard`,
+      ].join('\n'),
+    };
+  },
+
   'chat-unread-digest': (data, context) => {
     const name = field(data, 'fullName', 'there');
     const count = field(data, 'count', '1');

@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import { PAGE_META } from "./constants/pageMeta";
 import { SearchPopupContext } from "./hooks/useSearchPopup";
 import { SessionProvider } from "./hooks/useSession";
+import { FavouritesProvider } from "./features/listings/useFavourites";
 
 const pageModules = import.meta.glob("./pages/*.jsx");
 
@@ -53,7 +54,8 @@ export default function App() {
 
   return (
     <SessionProvider>
-      <SearchPopupContext.Provider value={searchPopup}>
+      <FavouritesProvider>
+        <SearchPopupContext.Provider value={searchPopup}>
       <Preloader />
       <Lightbox />
       <ScrollToTop />
@@ -72,7 +74,8 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-      </SearchPopupContext.Provider>
+        </SearchPopupContext.Provider>
+      </FavouritesProvider>
     </SessionProvider>
   );
 }

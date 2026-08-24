@@ -11,9 +11,10 @@ import {
   serializeProperty,
 } from '../../domain/property/serialize.js';
 import { recordAudit } from '../../infrastructure/db/models/AuditEvent.js';
-import { principalOf, requireRole, userOf } from '../middleware/authenticate.js';
+import { principalOf, requireRole, requireUser, userOf } from '../middleware/authenticate.js';
 import { AppError } from '../../shared/AppError.js';
 import { notifier } from '../../container.js';
+import { recordContactUnlock, sendEnquiry } from '../../application/buyer/enquiries.js';
 
 /**
  * Listings over HTTP.
@@ -113,6 +114,13 @@ propertyRouter.get('/:id', async (req, res, next) => {
       await PropertyModel.updateOne({ _id: property._id }, { $inc: { viewsCount: 1 } });
     }
 
+    // A signed-in visitor is about to be handed the broker's number. Recorded once per
+    // buyer per listing per day — it is what lets a broker be told how many people took
+    // their details, and what would make metering possible later without inventing history.
+    if (audience === 'user' && principal.kind === 'user') {
+      await recordContactUnlock(principal.id, property, req.ip ?? null);
+    }
+
     res.json({
       data: serializeProperty(property, audience),
       actions: actionsFor(property, principal),
@@ -161,6 +169,24 @@ propertyRouter.post('/:id/status', requireRole('broker', 'admin'), async (req, r
     res.json({
       data: serializeProperty(property, 'owner'),
       actions: actionsFor(property, principalOf(req)),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * A buyer asking about a listing. It lives here rather than in the buyer router because
+ * the resource is the listing — and because a router guarding a shared prefix guards
+ * everything under it, which is a trap this file already avoids.
+ */
+propertyRouter.post('/:id/enquiries', requireUser, async (req, res, next) => {
+  try {
+    const result = await sendEnquiry(userOf(req).id, String(req.params.id), req.body, notifier());
+    res.status(202).json({
+      sent: true,
+      id: result.id,
+      message: 'Your message is with the broker. They usually reply within a day.',
     });
   } catch (error) {
     next(error);

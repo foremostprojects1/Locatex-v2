@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 9 — Buyer features (Phase 6 is blocked, see below) |
-| **Last completed** | Phase 11 — Public pages: browse with filters, grid/list/map views, the listing page and broker profiles (150 API + 48 contract tests green, 19 deployable checks) |
-| **Next action** | P9.1 — server-side favourites, replacing v1's localStorage |
+| **Current phase** | Phase 10 — Chat (Phase 6 is blocked, see below) |
+| **Last completed** | Phase 9 — Buyer features: saved listings, the contact-unlock record, enquiries and the pages for both sides (168 API + 48 contract tests green, 19 deployable checks) |
+| **Next action** | P10.1 — thread and message models |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 198 tests should pass
+pnpm test                     # 216 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -306,10 +306,29 @@ functional; they were markup with `onSubmit={preventDefault}`. Everything built 
   suites use a helper that shortcuts registration, which would hide a mismatch between what
   the form sends and what the API expects.
 
-## Phase 9 — Buyer features · `todo`
+## Phase 9 — Buyer features · `done`
 
-P9.1 favourites (server-side) · P9.2 contact unlock + audit · P9.3 enquiries ·
-P9.4 buyer dashboard
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P9.1 | Favourites, server-side | `done` | Saved on one device and read on another; saving twice is saving once, enforced by a unique index rather than by the interface |
+| P9.2 | Contact unlock + audit | `done` | One row per buyer per listing per day; never for a visitor, who is not shown the number, and never for the broker reading their own listing |
+| P9.3 | Enquiries | `done` | The broker is emailed with a number they can ring; a buyer cannot repeat the same question all afternoon |
+| P9.4 | Buyer dashboard | `done` | `/my-favorites` and `/my-enquiries`, the latter showing both sides of the same records |
+
+### Phase 9 notes
+
+- **The unlock is keyed by the day.** Without that, a buyer refreshing a page ten times
+  would look like ten interested people and the number a broker sees would mean nothing.
+- **Saved listings that have since been withdrawn are counted, not dropped.** A list that
+  quietly shrinks makes people think the site lost their data, when a plot was simply sold.
+- **A bug this phase introduced, and the test that now prevents it.** Mounting the buyer
+  routes at `/api/v1` with a blanket `requireUser` guarded *everything* under that prefix —
+  the public contact form and the news endpoint started returning 401. The routers are now
+  at `/api/v1/me` and `/api/v1/broker`, the enquiry POST sits with the listing it is about,
+  and a test asserts that every public endpoint stays public and every private one stays
+  private.
+- Favourite state is held once for the whole app rather than per card; a grid of
+  twenty-four cards would otherwise make twenty-four requests to draw twenty-four hearts.
 
 ## Phase 10 — Chat · `todo`
 

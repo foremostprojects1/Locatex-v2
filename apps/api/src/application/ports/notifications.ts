@@ -24,7 +24,8 @@ export interface EmailMessage {
     | 'property-rejected'
     | 'contact-received'
     | 'contact-acknowledged'
-    | 'chat-unread-digest';
+    | 'chat-unread-digest'
+    | 'enquiry-received';
   data: Record<string, string>;
 }
 

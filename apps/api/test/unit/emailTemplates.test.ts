@@ -9,7 +9,7 @@ const context = {
 
 describe('the transactional emails', () => {
   it('covers every template the system can ask for', () => {
-    expect(TEMPLATE_NAMES).toHaveLength(11);
+    expect(TEMPLATE_NAMES).toHaveLength(12);
   });
 
   it('always produces a subject and both bodies', () => {

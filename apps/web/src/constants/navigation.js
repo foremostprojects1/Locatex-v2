@@ -45,6 +45,7 @@ export const MAIN_MENU = [
       { label: "Dashboard", to: "/dashboard" },
       { label: "My listings", to: "/my-property" },
       { label: "Saved land", to: "/my-favorites" },
+      { label: "My enquiries", to: "/my-enquiries" },
       { label: "Messages", to: "/message" },
       { label: "My profile", to: "/my-profile" },
     ],
