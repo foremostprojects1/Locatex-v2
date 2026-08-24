@@ -123,6 +123,24 @@ export const PAGE_META = [
     footerClass: "footer-dashboard",
   },
   {
+    route: "/properties",
+    name: "Properties",
+    layout: "main",
+    bodyClass: "body",
+  },
+  {
+    route: "/properties/:id",
+    name: "PropertyDetail",
+    layout: "main",
+    bodyClass: "body",
+  },
+  {
+    route: "/brokers/:id",
+    name: "BrokerProfile",
+    layout: "main",
+    bodyClass: "body",
+  },
+  {
     route: "/verify-email",
     name: "VerifyEmail",
     layout: "main",

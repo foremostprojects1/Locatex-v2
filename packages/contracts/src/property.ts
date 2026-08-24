@@ -315,6 +315,12 @@ export const propertySearchSchema = z
 
     q: z.string().trim().min(2).max(80).optional(),
 
+    /** The homepage carousel asks for these; an administrator decides what is in it. */
+    featured: z
+      .union([z.boolean(), z.enum(['true', 'false'])])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === true || value === 'true')),
+
     /** A radius search around a point, in kilometres. */
     lat: z.coerce.number().optional(),
     lng: z.coerce.number().optional(),

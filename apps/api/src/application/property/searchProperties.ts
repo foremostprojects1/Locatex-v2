@@ -120,6 +120,8 @@ function buildFilter(
 
   if (query.q) filter.$text = op({ $search: query.q });
 
+  if (query.featured !== undefined) filter.isFeatured = query.featured;
+
   if (query.lat != null && query.lng != null) {
     assertOnEarth(query.lat, query.lng);
     filter.geo = op({

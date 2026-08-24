@@ -4,11 +4,14 @@ export const MAIN_MENU = [
     label: "Buy land",
     className: "home",
     children: [
-      { label: "All listings", to: "/sidebar-grid" },
-      { label: "Listings on map", to: "/topmap-grid" },
-      { label: "Split map view", to: "/property-halfmap-grid" },
-      { label: "Agricultural land", to: "/sidebar-list" },
-      { label: "NA plots", to: "/topmap-list" },
+      // These point at the real, API-backed pages. The template's demo variants
+      // (/sidebar-grid, /topmap-grid and the rest) still exist and still render their
+      // sample data — they are reference material, not part of the product.
+      { label: "All listings", to: "/properties" },
+      { label: "Listings on map", to: "/properties?view=map" },
+      { label: "Agricultural land", to: "/properties?propertyType=land" },
+      { label: "NA plots", to: "/properties?propertyType=plot" },
+      { label: "Houses", to: "/properties?propertyType=house" },
     ],
   },
   {

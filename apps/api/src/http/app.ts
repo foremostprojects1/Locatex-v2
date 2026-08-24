@@ -14,6 +14,7 @@ import { referenceRouter } from './routes/reference.js';
 import { propertyRouter } from './routes/properties.js';
 import { propertyDraftRouter } from './routes/propertyDrafts.js';
 import { adminRouter } from './routes/admin.js';
+import { brokerRouter } from './routes/brokers.js';
 import { publicRouter } from './routes/public.js';
 import { attachPrincipal } from './middleware/authenticate.js';
 import { csrfProtection } from './middleware/csrf.js';
@@ -104,6 +105,7 @@ export function createApp(): Express {
   app.use('/api/v1/properties', propertyRouter);
   app.use('/api/v1/property-drafts', propertyDraftRouter);
   app.use('/api/v1/admin', adminRouter);
+  app.use('/api/v1/brokers', brokerRouter);
   app.use('/api/v1', publicRouter);
 
   // The web app is mounted last: API routes always win, and an unknown /api/* path still

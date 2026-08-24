@@ -107,6 +107,13 @@ async function main(): Promise<void> {
     // link we have ever sent is broken, which is not something to discover from a user.
     check('the email confirmation route is served', (await statusOf('/verify-email?token=x')) === 200);
     check('the password reset route is served', (await statusOf('/reset-password?token=x')) === 200);
+    check('the browse page is served', (await statusOf('/properties')) === 200);
+    // A strict search schema means a stray query parameter is a 400, not an ignored value —
+    // so the browse page's own `view` parameter must never reach the API.
+    check(
+      'a search with filters answers',
+      (await statusOf('/api/v1/properties?district=morbi&sort=price-asc&limit=2')) === 200,
+    );
     check(
       'a static file from the build is served',
       (await statusOf('/images/locatex/brand/logo-dark.png')) === 200,

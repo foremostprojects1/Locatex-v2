@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 11 — Public pages (Phase 6 is blocked, see below) |
-| **Last completed** | Phase 8b — Account access: the sign-in and registration modals wired to the API, the confirmation and reset pages, a session-aware header (145 API + 48 contract tests green, 17 deployable checks) |
-| **Next action** | P11.1 — the listing grid, so there is something to demonstrate |
+| **Current phase** | Phase 9 — Buyer features (Phase 6 is blocked, see below) |
+| **Last completed** | Phase 11 — Public pages: browse with filters, grid/list/map views, the listing page and broker profiles (150 API + 48 contract tests green, 19 deployable checks) |
+| **Next action** | P9.1 — server-side favourites, replacing v1's localStorage |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 193 tests should pass
+pnpm test                     # 198 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -317,10 +317,31 @@ P10.1 thread + message models · P10.2 Socket.IO with cookie auth · P10.3 REST 
 polling fallback · P10.4 read receipts and unread badges · P10.5 **24-hour unread digest job**
 · P10.6 rate limits and report/block (**contact swapping is allowed — no masking**)
 
-## Phase 11 — Public pages · `todo`
+## Phase 11 — Public pages · `done`
 
-P11.1 listing grid/list · P11.2 map view · P11.3 property detail (pin/circle by precision) ·
-P11.4 broker profiles · P11.5 contact page wired to the API · P11.6 tools and news
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P11.1 | Listing grid and list | `done` | `/properties`, with filters, sorting and cursor paging |
+| P11.2 | Map view | `done` | Same page, `?view=map`; exact pins are markers, approximate ones are circles |
+| P11.3 | Property detail with pin or circle by precision | `done` | `/properties/:id`; the guest response has no exact price, contact, survey number or real pin, so there is nothing in the page to find with a console |
+| P11.4 | Broker profiles | `done` | `/brokers/:id` — contact details only for signed-in visitors, counts across all their listings rather than the page shown |
+| P11.5 | Contact page wired to the API | `done` | Done in Phase 7 |
+| P11.6 | Tools and news | `partial` | The news endpoint is live and the admin manages items; the area converter and EMI calculator on the home page are still the template's |
+
+### Phase 11 notes
+
+- **Filters live in the URL, not in component state.** A property search gets sent to a
+  spouse, bookmarked and reached with the back button; none of that works if the state is
+  only in React.
+- **`view` is stripped before the query reaches the API.** The search schema is `.strict()`,
+  so a stray parameter is a 400 rather than a value quietly ignored — good discipline, but
+  it means our own view parameter had to be kept out of the request. A deployable check now
+  covers a filtered search so a regression here is caught before a deploy.
+- **Approximate listings are drawn as circles, not markers.** A marker asserts "here", and
+  the one thing known about these is that we do not know exactly where.
+- **The template's demo listing pages are left alone.** `/sidebar-grid`, `/topmap-grid` and
+  the rest still render their sample data; they are reference material. The navigation now
+  points at the real pages.
 
 ## Phase 12 — Hardening & launch · `todo`
 
