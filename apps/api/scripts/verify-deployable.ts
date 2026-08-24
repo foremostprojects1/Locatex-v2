@@ -108,6 +108,7 @@ async function main(): Promise<void> {
     check('the email confirmation route is served', (await statusOf('/verify-email?token=x')) === 200);
     check('the password reset route is served', (await statusOf('/reset-password?token=x')) === 200);
     check('the browse page is served', (await statusOf('/properties')) === 200);
+    check('chat is closed to strangers', (await statusOf('/api/v1/chat/threads')) === 401);
     // A strict search schema means a stray query parameter is a 400, not an ignored value —
     // so the browse page's own `view` parameter must never reach the API.
     check(

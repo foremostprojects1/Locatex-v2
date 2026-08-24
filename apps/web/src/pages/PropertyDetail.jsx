@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { AREA_UNIT_LABEL, convertArea, formatIndianShort } from "@locatex/contracts";
 import { useListing } from "../features/listings/useListings";
 import ListingsMap from "../features/listings/ListingsMap";
 import EnquiryForm from "../features/listings/EnquiryForm";
 import { useSession } from "../hooks/useSession";
+import { post } from "../services/locatexApi";
 
 /**
  * One listing, in full.
@@ -19,6 +20,8 @@ export default function PropertyDetail() {
   const { listing, loading, error } = useListing(id);
   const { isSignedIn } = useSession();
   const [activePhoto, setActivePhoto] = useState(0);
+  const [opening, setOpening] = useState(false);
+  const navigate = useNavigate();
 
   if (loading) return <div className="container lx-detail__loading">Loading…</div>;
 
@@ -232,6 +235,25 @@ export default function PropertyDetail() {
           {/* Only offered to someone who could actually be replied to. */}
           {isSignedIn && listing.contact ? (
             <div className="lx-panel">
+              <button
+                type="button"
+                className="tf-btn bg-color-primary pd-10 w-100"
+                disabled={opening}
+                onClick={async () => {
+                  setOpening(true);
+                  try {
+                    const response = await post("/chat/threads", { propertyId: listing.id });
+                    navigate(`/message?thread=${response.data.id}`);
+                  } finally {
+                    setOpening(false);
+                  }
+                }}
+              >
+                {opening ? "Opening…" : "Message the broker"}
+              </button>
+              <p className="lx-note">
+                Or send a one-off enquiry and they will get back to you by phone or email.
+              </p>
               <EnquiryForm propertyId={listing.id} />
             </div>
           ) : null}

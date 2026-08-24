@@ -2,6 +2,7 @@ import { createApp } from './http/app.js';
 import { env } from './config/env.js';
 import { connectMongo, disconnectMongo } from './infrastructure/db/mongo.js';
 import { logger } from './infrastructure/observability/logger.js';
+import { attachRealtime, closeRealtime } from './infrastructure/realtime/gateway.js';
 
 async function main(): Promise<void> {
   const config = env();
@@ -11,8 +12,13 @@ async function main(): Promise<void> {
     logger.info({ port: config.PORT, env: config.NODE_ENV }, 'locatex api listening');
   });
 
+  // Chat's real-time push. The REST endpoints are the feature; this only makes it instant,
+  // so a failure to attach would degrade the product rather than break it.
+  attachRealtime(server);
+
   const shutdown = (signal: string) => async () => {
     logger.info({ signal }, 'shutting down');
+    closeRealtime();
     server.close(async () => {
       await disconnectMongo();
       process.exit(0);

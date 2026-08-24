@@ -1157,3 +1157,200 @@
 .lx-saved {
   padding: 8px 0 40px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Chat.
+ * ------------------------------------------------------------------------- */
+
+.lx-chat {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.lx-chat__list {
+  padding: 18px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.lx-chat__list .title {
+  margin: 0 0 12px;
+}
+
+.lx-chat__list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lx-chat__list button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lx-chat__list button:hover {
+  background: #f9fafb;
+}
+
+.lx-chat__list button.is-active {
+  background: #fdf2f6;
+}
+
+.lx-chat__who {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lx-chat__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--primary, #e91e63);
+  color: #fff;
+  font-size: 11px;
+}
+
+.lx-chat__about {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.lx-chat__preview {
+  font-size: 12px;
+  opacity: 0.6;
+  /* One line, whatever the message length — the list must not reflow as chats arrive. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-chat__pane {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  overflow: hidden;
+}
+
+.lx-chat__placeholder {
+  margin: auto;
+}
+
+.lx-chat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line, #eef0f3);
+}
+
+.lx-chat__head > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.lx-chat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lx-chat__messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.lx-bubble {
+  max-width: 72%;
+  padding: 10px 14px;
+  border-radius: 14px 14px 14px 4px;
+  background: #f3f4f6;
+}
+
+.lx-bubble.is-mine {
+  align-self: flex-end;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--primary, #e91e63);
+  color: #fff;
+}
+
+.lx-bubble.is-failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.lx-bubble p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  /* Messages are stored exactly as typed, so they are rendered that way too. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lx-bubble__time {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.lx-chat__composer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line, #eef0f3);
+}
+
+.lx-chat__composer .form-control {
+  flex: 1;
+}
+
+.lx-chat__blocked,
+.lx-chat__report {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line, #eef0f3);
+}
+
+.lx-chat__report {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 991px) {
+  .lx-chat {
+    grid-template-columns: 1fr;
+  }
+
+  .lx-chat__list {
+    max-height: 260px;
+  }
+}

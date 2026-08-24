@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 10 — Chat (Phase 6 is blocked, see below) |
-| **Last completed** | Phase 9 — Buyer features: saved listings, the contact-unlock record, enquiries and the pages for both sides (168 API + 48 contract tests green, 19 deployable checks) |
-| **Next action** | P10.1 — thread and message models |
+| **Current phase** | Phase 12 — Hardening & launch (Phase 6 is blocked, see below) |
+| **Last completed** | Phase 10 — Chat: threads, messages, read receipts, blocking, reporting and the 24-hour unread digest (186 API + 48 contract tests green, 20 deployable checks) |
+| **Next action** | P12.1 — security review |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 216 tests should pass
+pnpm test                     # 234 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -330,11 +330,34 @@ functional; they were markup with `onSubmit={preventDefault}`. Everything built 
 - Favourite state is held once for the whole app rather than per card; a grid of
   twenty-four cards would otherwise make twenty-four requests to draw twenty-four hearts.
 
-## Phase 10 — Chat · `todo`
+## Phase 10 — Chat · `done`
 
-P10.1 thread + message models · P10.2 Socket.IO with cookie auth · P10.3 REST mirror +
-polling fallback · P10.4 read receipts and unread badges · P10.5 **24-hour unread digest job**
-· P10.6 rate limits and report/block (**contact swapping is allowed — no masking**)
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P10.1 | Thread + message models | `done` | One conversation per (listing, buyer), enforced by a unique index so two taps cannot split the history |
+| P10.2 | Socket.IO with cookie auth | `done` | Reuses the session cookie and repeats the HTTP middleware's checks, so a suspended account cannot hold a live socket |
+| P10.3 | REST mirror + polling fallback | `done` | HTTP *is* the feature; the socket only pushes a copy. 18 tests exercise the REST path end to end |
+| P10.4 | Read receipts and unread badges | `done` | Reading a thread is what marks it read — no separate call to forget, and no receipt that depends on the client remembering |
+| P10.5 | 24-hour unread digest | `done` | One email per person gathering every ignored conversation; a week of silence is one email, not seven |
+| P10.6 | Rate limits, report and block | `done` | 20 messages a minute, counted from the messages so a restart does not reset it. **Contact details are not masked** — the client's decision |
+
+### Phase 10 notes
+
+- **HTTP is the transport; the socket is an accelerator.** A chat built socket-first is
+  broken for exactly the people on the worst connections — who, here, are standing in a
+  field. Without a socket the client polls every eight seconds and loses nothing but
+  immediacy.
+- **A conversation is private from an administrator too.** A non-participant gets a 404
+  rather than a 403, because whether a conversation exists is itself private.
+- **Blocking silences the backlog, not just what comes next.** Writing the tests caught
+  this: the message that made someone block was still sitting unread in their inbox, and the
+  digest would have emailed them about it a day later — the exact thing they had just asked
+  to stop.
+- **The digest runs hourly, not daily.** Each message has its own 24-hour clock, so a single
+  daily run would be 24 hours late in the best case and 48 in the worst.
+- **Contact details are stored exactly as typed.** A pattern that hides phone numbers also
+  hides survey numbers, khaata numbers and prices — all of which look alike to a regular
+  expression, and all of which are the point of the conversation.
 
 ## Phase 11 — Public pages · `done`
 
