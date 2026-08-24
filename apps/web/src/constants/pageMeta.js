@@ -123,6 +123,14 @@ export const PAGE_META = [
     footerClass: "footer-dashboard",
   },
   {
+    route: "/admin",
+    name: "AdminDashboard",
+    layout: "dashboard",
+    bodyClass: "body bg-surface",
+    innerClass: "main-content-inner",
+    footerClass: "footer-dashboard",
+  },
+  {
     route: "/add-property",
     name: "AddProperty",
     layout: "dashboard",

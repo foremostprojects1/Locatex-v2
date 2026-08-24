@@ -109,6 +109,8 @@ async function main(): Promise<void> {
     );
     check('the reference API answers', (await statusOf('/api/v1/reference/districts')) === 200);
     check('the listings API answers', (await statusOf('/api/v1/properties')) === 200);
+    check('the news endpoint answers', (await statusOf('/api/v1/news')) === 200);
+    check('the admin dashboard is closed to strangers', (await statusOf('/api/v1/admin/stats')) === 401);
     check(
       'posting a listing without a session is refused',
       (await statusOf('/api/v1/properties')) === 200 && (await postStatus('/api/v1/properties')) === 401,

@@ -16,9 +16,10 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 6 — Google Drive |
-| **Last completed** | Phase 5 — Submit wizard: server-side drafts with autosave, the five-step form on the LocateX theme, a keyless map pin picker, and shared step validation (108 API + 48 contract tests green, 13 deployable checks) |
-| **Next action** | P6.1 — the `DocumentStorage` interface and its in-memory fake |
+| **Current phase** | Phase 8 — Email (Phase 6 is blocked, see below) |
+| **Last completed** | Phase 7 — Approval & admin: the review queue, KPI cards, account management, the contact inbox and timed news (124 API + 48 contract tests green, 15 deployable checks) |
+| **Next action** | P8.1 — the `Mailer` interface and the Gmail SMTP adapter |
+| **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
 **To resume:**
@@ -26,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 156 tests should pass
+pnpm test                     # 172 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -197,7 +198,12 @@ created after the GeoNames snapshot are curated by hand — see `docs/attributio
 needs no key; Google is what the client admired on dekhojamin.com and would need a key, a
 billing account and a budget alert. The picker works either way.
 
-## Phase 6 — Google Drive · `todo`
+## Phase 6 — Google Drive · `blocked`
+
+**Cannot start until the client connects a Google account** (decision D1: uploads go to the
+site owner's personal Drive). Everything else in the plan is unblocked, so Phase 7 was taken
+first and Phase 8 is next.
+
 
 | # | Task | Verify by |
 | --- | --- | --- |
@@ -208,11 +214,35 @@ billing account and a budget alert. The picker works either way.
 | P6.5 | **Quota monitor + 80% admin banner** (no storage upgrade — 15 GB only) | Alert fires in a simulated test |
 | P6.6 | Documents only to Drive; images to the CDN | Verified by upload paths |
 
-## Phase 7 — Approval & admin · `todo`
+## Phase 7 — Approval & admin · `done` (P7.2 deferred)
 
-P7.1 approval queue · P7.2 document viewer · P7.3 approve/reject with reason ·
-P7.4 users: activate/deactivate, verify brokers · P7.5 KPI cards · P7.6 news/ads with
-start/end · P7.7 contact-us inbox
+Taken before Phase 6 because Phase 6 cannot start until a Google account is connected.
+
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P7.1 | Approval queue | `done` | `/admin/properties` defaults to what is waiting; drafts never appear in anyone's queue |
+| P7.2 | Document viewer | `deferred` | Nothing to view until Phase 6 stores documents. The queue already shows the government record the broker typed |
+| P7.3 | Approve/reject with reason | `done` | Built in Phase 4's state machine; the dashboard will not send a rejection under five characters and the server refuses one anyway |
+| P7.4 | Users: activate/deactivate, verify brokers | `done` | Suspension raises the token version, so sessions end on the next request rather than at token expiry |
+| P7.5 | KPI cards | `done` | Two aggregations rather than seven counts; every status appears, as an honest zero if unused |
+| P7.6 | News/ads with start/end | `done` | Live is derived from the dates on every read; an edit that supplies only an end is checked against the stored start |
+| P7.7 | Contact-us inbox | `done` | The message is stored first and emailed second; both the admin and the sender are notified |
+
+### Phase 7 notes
+
+- **The contact form no longer only emails.** v1 posted to a PHP script that sent mail and
+  kept nothing, so a message lost to a spam folder was lost for good. The record is now
+  written first and the email is a notification about it — a failed send is logged, not
+  surfaced to the visitor, because their message *was* received.
+- **A timed item has a window, not a "published" flag.** A flag has to be flipped by
+  something, and the job meant to flip it will one day not run, leaving last month's offer on
+  the homepage. Two dates are true whether or not anything is running.
+- **Suspension ends sessions immediately.** Raising `tokenVersion` invalidates every access
+  token already in circulation. Without it, someone suspended for cause keeps working until
+  their token expires — exactly the window in which the damage gets done.
+- **Two guards nobody can talk their way past:** an administrator cannot change their own
+  status, and the last active administrator cannot be suspended. Either would lock everyone
+  out of the dashboard.
 
 ## Phase 8 — Email · `todo`
 

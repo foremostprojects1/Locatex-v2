@@ -15,7 +15,9 @@ export interface EmailMessage {
     | 'broker-rejected'
     | 'property-submitted'
     | 'property-approved'
-    | 'property-rejected';
+    | 'property-rejected'
+    | 'contact-received'
+    | 'contact-acknowledged';
   data: Record<string, string>;
 }
 

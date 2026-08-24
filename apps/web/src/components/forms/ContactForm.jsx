@@ -1,15 +1,19 @@
 import { useState } from "react";
+import { CONTACT_SUBJECTS, CONTACT_SUBJECT_LABEL } from "@locatex/contracts";
 import {
   CONTACT_ERROR,
   sendContactMessage,
 } from "../../services/contactService";
 
-const EMPTY = { name: "", email: "", phone: "", subject: "", message: "" };
+const EMPTY = { name: "", email: "", phone: "", subject: "general", message: "" };
 
 /**
- * "Drop Us A Line" form. Validation mirrors the jQuery Validate setup of the
- * template (name, email, phone and message required) and the response handling
- * of `ajaxContactForm`.
+ * "Drop Us A Line".
+ *
+ * The rules come from the shared contact schema rather than from the template's jQuery
+ * validation, so what a visitor is told here is exactly what the API will accept. The phone
+ * number is optional now — insisting on one turned away people who only wanted an email
+ * reply.
  */
 export default function ContactForm() {
   const [values, setValues] = useState(EMPTY);
@@ -21,26 +25,16 @@ export default function ContactForm() {
     setValues((current) => ({ ...current, [field]: event.target.value }));
   };
 
-  const validate = () => {
-    const nextErrors = {};
-    if (!values.name.trim()) nextErrors.name = "This field is required.";
-    if (!values.email.trim()) nextErrors.email = "This field is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email))
-      nextErrors.email = "Please enter a valid email address.";
-    if (!values.phone.trim()) nextErrors.phone = "This field is required.";
-    if (!values.message.trim()) nextErrors.message = "This field is required.";
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (pending || !validate()) return;
+    if (pending) return;
     setPending(true);
     setResult(null);
+    setErrors({});
     try {
       const response = await sendContactMessage(values);
       setResult(response);
+      setErrors(response.errors ?? {});
       if (response.status) setValues(EMPTY);
     } catch {
       setResult({ status: false, message: CONTACT_ERROR });
@@ -106,7 +100,7 @@ export default function ContactForm() {
       </div>
       <div className="box grid-2">
         <fieldset>
-          <label htmlFor="phone">Phone Numbers:</label>
+          <label htmlFor="phone">Phone number (optional):</label>
           <input
             type="text"
             className="form-control style-1"
@@ -121,15 +115,19 @@ export default function ContactForm() {
         </fieldset>
         <fieldset>
           <label htmlFor="subject">Subject:</label>
-          <input
-            type="text"
+          <select
             className="form-control style-1"
-            placeholder="Enter Keyword"
             name="subject"
             id="subject"
             value={values.subject}
             onChange={update("subject")}
-          />
+          >
+            {CONTACT_SUBJECTS.map((subject) => (
+              <option key={subject} value={subject}>
+                {CONTACT_SUBJECT_LABEL[subject]}
+              </option>
+            ))}
+          </select>
         </fieldset>
       </div>
       <fieldset>
