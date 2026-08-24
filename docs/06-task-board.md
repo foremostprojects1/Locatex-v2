@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 12 — Hardening & launch (Phase 6 is blocked, see below) |
-| **Last completed** | Phase 10 — Chat: threads, messages, read receipts, blocking, reporting and the 24-hour unread digest (186 API + 48 contract tests green, 20 deployable checks) |
-| **Next action** | P12.1 — security review |
+| **Current phase** | Everything buildable is built. Phase 6 and three client inputs remain — see below |
+| **Last completed** | Phase 12 — Hardening: a security review with two fixes, an accessibility pass, and the v1 import (197 API + 48 contract tests green, 20 deployable checks) |
+| **Next action** | **Yours:** click through the product in a browser, then work `07-deployment-checklist.md` |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 234 tests should pass
+pnpm test                     # 245 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -385,11 +385,48 @@ functional; they were markup with `onSubmit={preventDefault}`. Everything built 
   the rest still render their sample data; they are reference material. The navigation now
   points at the real pages.
 
-## Phase 12 — Hardening & launch · `todo`
+## Phase 12 — Hardening & launch · `mostly done`
 
-P12.1 security review · P12.2 accessibility pass · P12.3 load check on search and uploads ·
-P12.4 staging → production, cookie domains · P12.5 backups and alerts · P12.6 v1 data
-migration
+| # | Task | Status | Notes |
+| --- | --- | --- | --- |
+| P12.1 | Security review | `done` | Two real findings, both fixed. A suite now pins the guarantees — see below |
+| P12.2 | Accessibility pass | `partial` | Skip link, `main` landmark, focus-visible rings, reduced-motion support. **Not** a full audit: nobody has run a screen reader over this |
+| P12.3 | Load check | `not done` | Needs a populated database and a real host. The indexes it would exercise are all created by migration |
+| P12.4 | Staging → production, cookie domains | `documented` | `07-deployment-checklist.md`. `COOKIE_DOMAIN` is only needed if the app spans subdomains |
+| P12.5 | Backups and alerts | `documented` | Atlas continuous backups, `/healthz` for uptime, the mail-volume warning |
+| P12.6 | v1 data migration | `done` | `pnpm migrate:v1`, idempotent, with a dry run |
+
+### The two security findings
+
+- **An XSS sink in the subscribe form.** It rendered the server's reply with `innerHTML`,
+  which makes whatever that endpoint returns executable in the visitor's page — and it is
+  not always an endpoint we control. It renders as text now.
+- **The socket's origin allow-list was wrong.** It was built from `CORS_ORIGINS` alone,
+  which is configured for *other* origins. In single-deployment mode the page is served from
+  the API's own origin, so the socket would have been refused by the very page that opened
+  it. Fixed the same way the HTTP CORS delegate already handled it.
+
+`test/integration/security.test.ts` now pins eleven properties the system rests on: no stack
+traces reach a client, a query-string operator is refused, session cookies stay out of
+JavaScript, forged and `alg: none` JWTs are rejected, sign-in answers identically whether or
+not an account exists, and guessing is rate limited.
+
+### What is honestly not covered
+
+- **No browser has run any of this.** There is no headless browser in the build environment.
+  Every React page is verified by its API contract, not by being used.
+- **No screen reader has been run over it**, and no load test against a populated database.
+
+---
+
+## What is left
+
+| | Blocked on |
+| --- | --- |
+| **Phase 6 — Google Drive** (and P7.2, the document viewer) | The client connecting a Google account |
+| **Image upload** | A Cloudinary account. Brokers paste image URLs today |
+| **SMS for phone OTPs** | A provider being chosen. **Registration cannot be completed without it** |
+| **A browser pass over the whole product** | Half a day of somebody clicking |
 
 ---
 
