@@ -7,6 +7,7 @@ import Lightbox from "./components/common/Lightbox";
 import NotFound from "./pages/NotFound";
 import { PAGE_META } from "./constants/pageMeta";
 import { SearchPopupContext } from "./hooks/useSearchPopup";
+import { SessionProvider } from "./hooks/useSession";
 
 const pageModules = import.meta.glob("./pages/*.jsx");
 
@@ -51,7 +52,8 @@ export default function App() {
   const publicPages = PAGES.filter((page) => page.layout !== "dashboard");
 
   return (
-    <SearchPopupContext.Provider value={searchPopup}>
+    <SessionProvider>
+      <SearchPopupContext.Provider value={searchPopup}>
       <Preloader />
       <Lightbox />
       <ScrollToTop />
@@ -70,6 +72,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-    </SearchPopupContext.Provider>
+      </SearchPopupContext.Provider>
+    </SessionProvider>
   );
 }

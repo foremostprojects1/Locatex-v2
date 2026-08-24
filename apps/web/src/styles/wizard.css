@@ -1,0 +1,256 @@
+/**
+ * The submit wizard and its map picker.
+ *
+ * Kept in its own file rather than added to the template's stylesheet: everything here is
+ * ours, prefixed `lx-`, and a future template update cannot collide with it. Colours are
+ * taken from the template's own custom properties so the wizard follows the LocateX theme
+ * without restating it.
+ */
+
+.lx-wizard__rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  counter-reset: none;
+}
+
+.lx-wizard__step {
+  flex: 1 1 180px;
+}
+
+.lx-wizard__step button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lx-wizard__step button:hover {
+  border-color: var(--primary, #e91e63);
+}
+
+.lx-wizard__step.is-current button {
+  border-color: var(--primary, #e91e63);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.12);
+}
+
+.lx-wizard__number {
+  flex: 0 0 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--line, #eef0f3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lx-wizard__step.is-done .lx-wizard__number {
+  background: #16a34a;
+  color: #fff;
+}
+
+.lx-wizard__step.is-current .lx-wizard__number {
+  background: var(--primary, #e91e63);
+  color: #fff;
+}
+
+.lx-wizard__label {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.lx-wizard__label strong {
+  font-size: 14px;
+}
+
+.lx-wizard__label small {
+  font-size: 12px;
+  opacity: 0.65;
+  /* The hint is a nicety; it must never push the rail wider than the screen. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-wizard__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lx-wizard__save {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.lx-wizard__save.is-saving {
+  opacity: 1;
+}
+
+.lx-wizard__save.is-error {
+  color: #dc2626;
+  opacity: 1;
+}
+
+.lx-wizard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.lx-wizard__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lx-section-title {
+  margin: 28px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.lx-note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.75;
+}
+
+.lx-field__hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.lx-field__error {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+/* Precision: two cards, because the choice deserves more than a radio label. */
+.lx-choice {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.lx-choice__option {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.lx-choice__option.is-active {
+  border-color: var(--primary, #e91e63);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.12);
+}
+
+.lx-choice__option input {
+  margin-right: 8px;
+}
+
+.lx-choice__option strong {
+  font-size: 14px;
+}
+
+.lx-choice__option span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.7;
+  line-height: 1.45;
+}
+
+.lx-checkgrid__group {
+  margin-bottom: 18px;
+}
+
+.lx-checkgrid__title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: capitalize;
+  opacity: 0.7;
+}
+
+.lx-checkgrid__items {
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.lx-checkgrid__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* The map picker: a fixed crosshair over a map the broker moves underneath it. */
+.lx-map-picker {
+  position: relative;
+}
+
+.lx-map-picker__canvas {
+  height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.lx-map-picker__crosshair {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 500;
+}
+
+/* A pin drawn in CSS: no image to bundle, and no Leaflet asset path to get wrong. */
+.lx-map-picker__crosshair span {
+  width: 22px;
+  height: 22px;
+  margin-top: -22px;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--primary, #e91e63);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.lx-map-picker__hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 575px) {
+  .lx-map-picker__canvas {
+    height: 260px;
+  }
+
+  .lx-wizard__label small {
+    display: none;
+  }
+}

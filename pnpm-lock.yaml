@@ -123,12 +123,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@locatex/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       bootstrap:
         specifier: ^5.3.2
         version: 5.3.8(@popperjs/core@2.11.8)
       chart.js:
         specifier: ^4.5.1
         version: 4.5.1
+      leaflet:
+        specifier: ^1.9.4
+        version: 1.9.4
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -141,6 +147,9 @@ importers:
       swiper:
         specifier: ^8.4.5
         version: 8.4.7
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
     devDependencies:
       '@types/react':
         specifier: ^19.2.17
@@ -1776,6 +1785,9 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
+
+  leaflet@1.9.4:
+    resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -3983,6 +3995,8 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
+
+  leaflet@1.9.4: {}
 
   levn@0.4.1:
     dependencies:

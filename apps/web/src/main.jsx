@@ -10,6 +10,7 @@ import "./styles/bootstrap.min.css";
 import "swiper/css/bundle";
 import "./styles/animate.css";
 import "./styles/styles.css";
+import "./styles/wizard.css";
 
 // Bootstrap's data-api (tabs, accordions, dropdowns, modals) is delegated from
 // the document, so importing it once is enough for every route.

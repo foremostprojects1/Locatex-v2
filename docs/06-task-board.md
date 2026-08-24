@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 5 — Submit wizard |
-| **Last completed** | Phase 4 — Property core: the listing model, the lifecycle state machine, search with keyset pagination and radius queries, and role-aware serialisation (95 API + 40 contract tests green, 13 deployable checks) |
-| **Next action** | P5.1 — server-side draft and autosave endpoints |
+| **Current phase** | Phase 6 — Google Drive |
+| **Last completed** | Phase 5 — Submit wizard: server-side drafts with autosave, the five-step form on the LocateX theme, a keyless map pin picker, and shared step validation (108 API + 48 contract tests green, 13 deployable checks) |
+| **Next action** | P6.1 — the `DocumentStorage` interface and its in-memory fake |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
 **To resume:**
@@ -26,7 +26,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 135 tests should pass
+pnpm test                     # 156 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -165,15 +165,37 @@ created after the GeoNames snapshot are curated by hand — see `docs/attributio
 - Indexes are created by migration rather than by Mongoose at boot, so a deploy never builds
   an index in the foreground against a live Atlas collection.
 
-## Phase 5 — Submit wizard · `todo`
+## Phase 5 — Submit wizard · `done`
 
-| # | Task | Verify by |
-| --- | --- | --- |
-| P5.1 | Server-side draft + autosave endpoints | Draft survives a browser restart |
-| P5.2 | Five-step wizard UI on the LocateX theme | Broker completes it on a phone |
-| P5.3 | Shared zod validation (contracts package) | Same errors client and server |
-| P5.4 | Map pin picker + approximate fallback + precision recording | Pin, precision and radius stored correctly |
-| P5.5 | Amenities / disadvantages / new attributes in the form | Values persist |
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P5.1 | Server-side draft + autosave endpoints | `done` | A draft reopened from a second sign-in still holds what was typed; out-of-order autosaves merge instead of overwriting |
+| P5.2 | Five-step wizard UI on the LocateX theme | `done` | `apps/web/src/features/submit-property/`; steps are navigable in any order, submission is gated on all five validating |
+| P5.3 | Shared zod validation (contracts package) | `done` | Each step's schema is a `.pick()` of `createPropertySchema`, so the message while typing is the rule that accepts the listing |
+| P5.4 | Map pin picker + approximate fallback + precision recording | `done` | Exact pins are stored as given; approximate ones resolve through the pincode and carry a measured radius |
+| P5.5 | Amenities / disadvantages / new attributes in the form | `done` | Both lists come from `/reference/land-attributes`, grouped as the API groups them |
+
+### Phase 5 notes
+
+- **Drafts are a separate collection, not a relaxed listing.** A listing's schema requires a
+  title, a price, an area and a location; a draft is by definition missing most of them.
+  Loosening `properties` to hold half-filled forms would have given up the guarantee that
+  anything in that collection is complete.
+- **Autosave merges, it does not replace.** On a phone, a save for step two can arrive after
+  a save for step three. Merging by top-level key means a late request cannot erase the steps
+  it said nothing about.
+- **The map has no API key.** The picker uses OpenStreetMap tiles through Leaflet, so it
+  works today — we have no Google Maps key, and the one found in the v1 source belonged to a
+  competitor. `services/googleMaps.js` still holds the loader; switching is a change to
+  `MapPicker.jsx` alone. **A decision the client should confirm** — see below.
+- **The pin is the map's centre under a fixed crosshair**, not a draggable marker: on a phone
+  a marker is smaller than a fingertip and sits under the finger placing it.
+- The wizard adds ~230 KB gzipped to the `AddProperty` chunk (Leaflet, zod, the contracts
+  package). It is lazily loaded, so only brokers opening the form pay for it.
+
+**Needs a decision:** Google Maps or OpenStreetMap for the pin picker. OSM costs nothing and
+needs no key; Google is what the client admired on dekhojamin.com and would need a key, a
+billing account and a budget alert. The picker works either way.
 
 ## Phase 6 — Google Drive · `todo`
 
