@@ -21,6 +21,7 @@ live outside the repository.
 | A6 | **Domain and DNS** | `locatex.in` or whichever, pointed at the host. | **Yes** |
 | A7 | **Node host** | One process serves the API and the built site; the worker is a second process from the same checkout. Render, Railway, Fly or a plain VPS. Node 20.11 or newer. | **Yes** |
 | A8 | **TLS certificate** | Session cookies are `Secure`; without HTTPS nobody stays signed in. Most hosts issue this automatically. | **Yes** |
+| A8b | **Cloudinary account** (or another image CDN) | Listing photographs. The architecture puts documents on Drive and images on a CDN, because Drive is a poor image host — no transformations and aggressive download quotas. **Not built yet:** the wizard currently asks brokers to paste image links. A listing with no photographs is a listing nobody clicks. | Effectively yes |
 | A9 | **Google account for Drive** | Document uploads (Phase 6). Not needed to launch without document upload, but Phase 6 cannot start until it exists. | For Phase 6 |
 | A10 | **Google Maps API key + billing** | Only if you choose Google over OpenStreetMap for the map. The picker works today without one. | Optional |
 
@@ -206,4 +207,5 @@ D6 and D9 are the ones that matter. Everything else can pass while the product i
 | F3 | **Taluka-to-district table** | Assignments for districts created after the GeoNames snapshot were curated by hand and have not been checked by anyone who knows Gujarat. A wrong one puts listings in the wrong district. |
 | F4 | **Document uploads (Phase 6)** | Blocked on a Google account. You can launch without it — brokers type the government record — but there is nowhere to upload a 7/12 extract until it is built. |
 | F5 | **Nothing has run in a browser** | The React code is verified by its API contract, not by a browser — there is no headless browser in the build environment. Someone should click through sign-up, the wizard and the admin dashboard once. |
-| F6 | **v1 data migration** | Phase 12. If existing listings and accounts must carry over, that is a separate piece of work with its own testing. |
+| F6 | **Image upload is not built** | Brokers paste image URLs today. Needs a Cloudinary account (A8b) and roughly a day of work — signed direct uploads from the browser, so photographs never pass through our server. |
+| F7 | **v1 data migration** | Phase 12. If existing listings and accounts must carry over, that is a separate piece of work with its own testing. |
