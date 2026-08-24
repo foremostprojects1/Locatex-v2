@@ -19,7 +19,11 @@
     "dev:api": "pnpm --filter @locatex/api dev",
     "dev:web": "pnpm --filter @locatex/web dev",
     "start": "SERVE_WEB=true pnpm --filter @locatex/api start",
-    "verify:deployable": "pnpm --filter @locatex/api exec tsx scripts/verify-deployable.ts"
+    "verify:deployable": "pnpm --filter @locatex/api exec tsx scripts/verify-deployable.ts",
+    "create:admin": "pnpm --filter @locatex/api create:admin",
+    "seed:reference": "pnpm --filter @locatex/api seed:reference",
+    "worker:start": "pnpm --filter @locatex/api worker:start",
+    "migrate:status": "pnpm --filter @locatex/api migrate:status"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

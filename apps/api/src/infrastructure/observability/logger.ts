@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { pino } from 'pino';
 import { env } from '../../config/env.js';
 
@@ -24,10 +25,27 @@ export const logger = pino({
     ],
     censor: '[redacted]',
   },
-  transport:
-    env().NODE_ENV === 'development'
-      ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } }
-      : undefined,
+  /**
+   * Human-readable logs in development, JSON everywhere else.
+   *
+   * `pino-pretty` is a development dependency, so a production install that omits dev
+   * dependencies has nothing to load. Resolving it here rather than naming it as a string
+   * means a missing module leaves plain JSON logs instead of refusing to start — a
+   * formatter is not worth a boot failure.
+   */
+  transport: prettyTransport(),
 });
 
 export type Logger = typeof logger;
+
+function prettyTransport(): { target: string; options: Record<string, unknown> } | undefined {
+  if (env().NODE_ENV !== 'development') return undefined;
+  try {
+    // `require.resolve` is not defined in an ES module; this is the supported way to ask
+    // "is this package installed?" without importing it.
+    createRequire(import.meta.url).resolve('pino-pretty');
+    return { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } };
+  } catch {
+    return undefined;
+  }
+}
