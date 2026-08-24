@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 9 — Buyer features (Phase 6 is blocked, see below) |
-| **Last completed** | Phase 8 — Email: eleven templates, a queued mailer with an audit log, and a daily-volume guard against Gmail's ceiling (140 API + 48 contract tests green, 15 deployable checks) |
-| **Next action** | P9.1 — server-side favourites, replacing v1's localStorage |
+| **Current phase** | Phase 11 — Public pages (Phase 6 is blocked, see below) |
+| **Last completed** | Phase 8b — Account access: the sign-in and registration modals wired to the API, the confirmation and reset pages, a session-aware header (145 API + 48 contract tests green, 17 deployable checks) |
+| **Next action** | P11.1 — the listing grid, so there is something to demonstrate |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 188 tests should pass
+pnpm test                     # 193 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -278,6 +278,33 @@ Taken before Phase 6 because Phase 6 cannot start until a Google account is conn
 **Before launch:** create the Gmail app password and, if mail should come from
 `info@locatex.in` rather than the Gmail address, verify that alias under Gmail →
 Settings → Accounts → "Send mail as". Gmail rewrites the From header otherwise.
+
+## Phase 8b — Account access · `done`
+
+Not in the original plan. The plan assumed the template's login and register modals were
+functional; they were markup with `onSubmit={preventDefault}`. Everything built in Phases 2,
+5 and 7 was unreachable from a browser until this was done.
+
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P8b.1 | Sign-in modal wired, email or mobile as the identifier | `done` | A wrong password and an unknown account give the same message — the server does not distinguish them either |
+| P8b.2 | Registration modal with the brief's fields and the two-channel confirmation step | `done` | The form no longer closes on success: it shows what still has to be confirmed, because a "registered!" that then refuses the sign-in reads as a broken site |
+| P8b.3 | `/verify-email` and `/reset-password` pages | `done` | Both are in the deployable check — a 404 there would break every confirmation link ever sent |
+| P8b.4 | Session-aware header with sign-out | `done` | Driven by the session, not by the layout; the template showed "Sign in" to signed-in visitors on every public page |
+| P8b.5 | Forgot-password flow | `done` | The same response whether or not the address has an account |
+
+### Phase 8b notes
+
+- **The email confirmation spends its token on mount, the password reset does not.** Clicking
+  the link in the email *was* the intent, so asking for a second click only loses people. A
+  reset is different: spending the token on open would burn the link if the phone locked
+  before a password was typed.
+- **Confirmation runs once even though React mounts effects twice in development.** The
+  second run would find the token already spent and report a failure for something that
+  worked.
+- A new `signupJourney` suite drives the API in the exact order the modal does. The other
+  suites use a helper that shortcuts registration, which would hide a mismatch between what
+  the form sends and what the API expects.
 
 ## Phase 9 — Buyer features · `todo`
 

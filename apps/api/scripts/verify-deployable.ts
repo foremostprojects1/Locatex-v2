@@ -103,6 +103,10 @@ async function main(): Promise<void> {
 
     check('app shell is served at /', (await statusOf('/')) === 200);
     check('a deep client-side route falls back to the shell', (await statusOf('/faq')) === 200);
+    // The two routes our emails link to. A 404 here means every confirmation and reset
+    // link we have ever sent is broken, which is not something to discover from a user.
+    check('the email confirmation route is served', (await statusOf('/verify-email?token=x')) === 200);
+    check('the password reset route is served', (await statusOf('/reset-password?token=x')) === 200);
     check(
       'a static file from the build is served',
       (await statusOf('/images/locatex/brand/logo-dark.png')) === 200,

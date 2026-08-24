@@ -123,6 +123,18 @@ export const PAGE_META = [
     footerClass: "footer-dashboard",
   },
   {
+    route: "/verify-email",
+    name: "VerifyEmail",
+    layout: "main",
+    bodyClass: "body",
+  },
+  {
+    route: "/reset-password",
+    name: "ResetPassword",
+    layout: "main",
+    bodyClass: "body",
+  },
+  {
     route: "/admin",
     name: "AdminDashboard",
     layout: "dashboard",

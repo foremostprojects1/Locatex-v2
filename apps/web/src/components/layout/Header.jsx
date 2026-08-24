@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MainNav from "./MainNav";
 import MobileMenu from "./MobileMenu";
 import { ACCOUNT_MENU } from "../../constants/navigation";
+import { useSession } from "../../hooks/useSession";
 import useSearchPopup from "../../hooks/useSearchPopup";
 import { BRAND } from "../../content/brand";
 
@@ -62,6 +63,8 @@ export default function Header({
   const { toggle: toggleSearchPopup } = useSearchPopup();
 
   const isDashboard = variant === "dashboard";
+  const { user, signOut } = useSession();
+  const navigate = useNavigate();
   const hasFixedBehaviour = variant === "fixed" || variant === "style-2";
 
   useEffect(() => {
@@ -158,19 +161,30 @@ export default function Header({
                     : "inner-header-right header-account"
                 }
               >
-                {isDashboard ? (
+                {/*
+                  Driven by the session rather than by which layout is rendering. The
+                  template showed an account menu on every dashboard page and a "Sign in"
+                  button everywhere else, which meant a signed-in visitor on the home page
+                  was invited to sign in again.
+                */}
+                {user ? (
                   <div
                     className="box-avatar dropdown-toggle"
                     data-bs-toggle="dropdown"
                   >
                     <div className="avatar avt-34 round">
-                      <img src="/images/avatar/avt-5.jpg" alt="avt" />
+                      <img src={user.avatarUrl ?? "/images/avatar/avt-5.jpg"} alt="" />
                     </div>
                     <p className="name">
-                      Themesflat
+                      {user.fullName?.split(" ")[0] ?? "My account"}
                       <span className="icon icon-arr-down" />
                     </p>
                     <div className="dropdown-menu">
+                      {user.role === "admin" ? (
+                        <Link className="dropdown-item" to="/admin">
+                          Admin dashboard
+                        </Link>
+                      ) : null}
                       {ACCOUNT_MENU.map((item) => (
                         <Link
                           key={item.label}
@@ -180,6 +194,16 @@ export default function Header({
                           {item.label}
                         </Link>
                       ))}
+                      <button
+                        type="button"
+                        className="dropdown-item"
+                        onClick={async () => {
+                          await signOut();
+                          navigate("/");
+                        }}
+                      >
+                        Sign out
+                      </button>
                     </div>
                   </div>
                 ) : (
