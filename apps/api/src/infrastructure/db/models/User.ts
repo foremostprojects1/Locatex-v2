@@ -92,6 +92,9 @@ const userSchema = new Schema(
     brokerApplication: { type: brokerApplicationSchema, default: null },
 
     deletedAt: { type: Date, default: null },
+
+    /** The v1 `_id` this account came from, so re-running the import updates in place. */
+    legacyId: { type: String, default: null },
   },
   {
     timestamps: true,
@@ -112,6 +115,10 @@ userSchema.index(
   { unique: true, partialFilterExpression: { deletedAt: null } },
 );
 userSchema.index({ 'brokerApplication.status': 1, 'brokerApplication.submittedAt': -1 });
+userSchema.index(
+  { legacyId: 1 },
+  { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } },
+);
 
 export const UserModel = model('User', userSchema);
 

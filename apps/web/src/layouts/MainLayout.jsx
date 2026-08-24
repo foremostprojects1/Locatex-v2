@@ -30,12 +30,22 @@ export default function MainLayout() {
 
   return (
     <div id="wrapper">
+      {/*
+        A keyboard user lands on the first element of the page, which is a header with
+        dozens of navigation links. Without this they tab through every one of them on
+        every page before reaching the content.
+      */}
+      <a className="lx-skip-link" href="#main-content">
+        Skip to content
+      </a>
       <div id="page" className="clearfix">
         <Header
           variant={meta.headerVariant ?? "default"}
           showSearchButton={Boolean(meta.showSearchButton)}
         />
-        <Outlet />
+        <main id="main-content" tabIndex={-1}>
+          <Outlet />
+        </main>
         {meta.layout !== "bare" && <Footer />}
       </div>
       <GoTop />

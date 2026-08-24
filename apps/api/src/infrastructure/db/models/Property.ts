@@ -144,6 +144,9 @@ const propertySchema = new Schema(
     viewsCount: { type: Number, default: 0 },
 
     deletedAt: { type: Date, default: null },
+
+    /** The v1 `_id` this listing came from, so re-running the import updates in place. */
+    legacyId: { type: String, default: null },
   },
   {
     timestamps: true,
@@ -163,6 +166,10 @@ propertySchema.index({ status: 1, areaSqft: -1, _id: -1 });
 propertySchema.index({ brokerId: 1, status: 1, _id: -1 });
 propertySchema.index({ status: 1, isFeatured: -1, _id: -1 });
 propertySchema.index({ 'location.pincode': 1 });
+propertySchema.index(
+  { legacyId: 1 },
+  { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } },
+);
 
 // Radius search. Sparse, because a listing with no coordinates at all is legitimate — the
 // broker may know only the pincode, and Phase 3 resolves that lazily.

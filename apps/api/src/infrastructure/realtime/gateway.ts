@@ -21,16 +21,33 @@ import { env } from '../../config/env.js';
 
 let io: SocketServer | undefined;
 
+/** `new URL()` throws on a malformed value; config validation already guards these. */
+const safeOrigin = (value: string): string => {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value;
+  }
+};
+
 /** Each person joins a room named after their own id; messages are sent to that room. */
 const roomFor = (userId: string): string => `user:${userId}`;
 
 export function attachRealtime(server: HttpServer): SocketServer {
   const config = env();
 
+  // The app's own origin has to be on this list. In single-deployment mode the page is
+  // served from the API's origin, and `CORS_ORIGINS` is configured for *other* origins —
+  // so relying on it alone refused the socket from the very page that opened it.
+  const allowedOrigins = [
+    ...config.CORS_ORIGINS,
+    safeOrigin(config.APP_BASE_URL),
+    safeOrigin(config.API_BASE_URL),
+  ];
+
   io = new SocketServer(server, {
     path: '/api/v1/realtime',
-    // Same origin in single-deployment mode; the list is here for a split deployment.
-    cors: { origin: config.CORS_ORIGINS, credentials: true },
+    cors: { origin: allowedOrigins, credentials: true },
     // Polling first, then upgrade. A network that blocks websockets still gets messages.
     transports: ['polling', 'websocket'],
   });

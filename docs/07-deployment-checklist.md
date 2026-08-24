@@ -133,6 +133,23 @@ the amenity vocabulary. Without it every address dropdown in the submit wizard i
 no listing can be created. It is idempotent, so running it again is safe and is how you pick
 up a later correction to the data.
 
+### C4b. Bring v1 across (only if the old data must carry over)
+
+```bash
+pnpm migrate:v1 -- --from "mongodb://…/locatex-v1" --dry-run   # look first
+pnpm migrate:v1 -- --from "mongodb://…/locatex-v1"
+```
+
+Run the dry run and **read the skipped list**. Records are skipped rather than guessed at —
+an account with no usable mobile number, a listing with no price or no pincode — and each
+one needs a decision before a second run. The import is idempotent: every record carries the
+v1 id it came from, so re-running updates instead of duplicating.
+
+Passwords come across unchanged. v1 used bcrypt at the same cost we do, so the hashes verify
+as they are and nobody has to reset a password to keep using the site.
+
+Point it at a **copy** of the v1 database, not the live one.
+
 ### C5. Create the first administrator
 
 ```bash

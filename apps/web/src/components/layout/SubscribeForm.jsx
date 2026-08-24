@@ -66,11 +66,15 @@ export default function SubscribeForm({ mailchimp = true }) {
         </div>
       )}
       <div id="subscribe-msg">
+        {/*
+          Rendered as text, not HTML. The template inserted the server's reply with
+          innerHTML, which makes whatever that endpoint returns executable in the visitor's
+          page — and the endpoint is not always one we control.
+        */}
         {result && (
-          <div
-            className={result.status ? "notification_ok" : "notification_error"}
-            dangerouslySetInnerHTML={{ __html: result.message }}
-          />
+          <div className={result.status ? "notification_ok" : "notification_error"}>
+            {result.message}
+          </div>
         )}
       </div>
     </form>

@@ -26,6 +26,14 @@ export default function DashboardLayout() {
 
   return (
     <div id="wrapper">
+      {/*
+        A keyboard user lands on the first element of the page, which is a header with
+        dozens of navigation links. Without this they tab through every one of them on
+        every page before reaching the content.
+      */}
+      <a className="lx-skip-link" href="#main-content">
+        Skip to content
+      </a>
       <div id="page" className="clearfix">
         <div className={`layout-wrap${sidebarCollapsed ? " full-width" : ""}`}>
           <Header
@@ -47,7 +55,9 @@ export default function DashboardLayout() {
               >
                 <span className="body-1">Show Dashboard</span>
               </div>
-              <Outlet />
+              <main id="main-content" tabIndex={-1}>
+                <Outlet />
+              </main>
             </div>
             <div className={meta.footerClass ?? "footer-dashboard"}>
               <p>Copyright © 2024 Home Lengo</p>
