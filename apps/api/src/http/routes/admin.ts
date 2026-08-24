@@ -11,6 +11,9 @@ import { listUsers, setUserStatus } from '../../application/admin/users.js';
 import { setContactStatus } from '../../application/admin/contact.js';
 import { allNews, createNewsItem, deleteNewsItem, updateNewsItem } from '../../application/admin/news.js';
 import { ContactMessageModel } from '../../infrastructure/db/models/ContactMessage.js';
+import { EmailLogModel } from '../../infrastructure/db/models/EmailLog.js';
+import { sentInLastDay } from '../../application/mail/mailer.js';
+import { env } from '../../config/env.js';
 import { serializeProperty } from '../../domain/property/serialize.js';
 import { recordAudit } from '../../infrastructure/db/models/AuditEvent.js';
 import { requireRole, userOf } from '../middleware/authenticate.js';
@@ -194,6 +197,65 @@ adminRouter.delete('/news/:id', async (req, res, next) => {
     });
 
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Outgoing mail
+// ---------------------------------------------------------------------------
+
+/**
+ * What the system has been sending, and how close that is to Gmail's ceiling.
+ *
+ * The headroom matters more than the list: a free Google account is locked, not throttled,
+ * when it goes over roughly 500 messages a day, and the first warning Google gives is the
+ * lock itself.
+ */
+adminRouter.get('/emails', async (req, res, next) => {
+  try {
+    const { status, template, limit } = z
+      .object({
+        status: z.enum(['queued', 'sent', 'failed', 'suppressed']).optional(),
+        template: z.string().max(60).optional(),
+        limit: z.coerce.number().int().positive().max(200).default(50),
+      })
+      .strict()
+      .parse(req.query);
+
+    const filter: Record<string, unknown> = {};
+    if (status) filter.status = status;
+    if (template) filter.template = template;
+
+    const [rows, today] = await Promise.all([
+      EmailLogModel.find(filter).sort({ _id: -1 }).limit(limit).lean(),
+      sentInLastDay(),
+    ]);
+
+    const config = env();
+    res.json({
+      data: rows.map((row) => ({
+        id: String(row._id),
+        to: row.to,
+        template: row.template,
+        subject: row.subject,
+        status: row.status,
+        attempts: row.attempts,
+        sentAt: row.sentAt ?? null,
+        error: row.error ?? null,
+        suppressedReason: row.suppressedReason ?? null,
+        createdAt: row.createdAt,
+      })),
+      volume: {
+        last24Hours: today,
+        limit: config.EMAIL_DAILY_LIMIT,
+        warnAt: config.EMAIL_DAILY_WARN_AT,
+        remaining: Math.max(0, config.EMAIL_DAILY_LIMIT - today),
+        /** True once an administrator should be arranging more headroom, not after. */
+        shouldWarn: today >= config.EMAIL_DAILY_WARN_AT,
+      },
+    });
   } catch (error) {
     next(error);
   }

@@ -7,6 +7,12 @@ import { logger } from '../../infrastructure/observability/logger.js';
  */
 export interface EmailMessage {
   to: string;
+  /**
+   * Makes a send idempotent. Two attempts carrying the same key reach the recipient once,
+   * which is what stops a retried job — or a job the queue delivered twice, as every queue
+   * eventually does — from emailing the same person the same thing twice.
+   */
+  dedupeKey?: string;
   template:
     | 'verify-email'
     | 'reset-password'
@@ -17,7 +23,8 @@ export interface EmailMessage {
     | 'property-approved'
     | 'property-rejected'
     | 'contact-received'
-    | 'contact-acknowledged';
+    | 'contact-acknowledged'
+    | 'chat-unread-digest';
   data: Record<string, string>;
 }
 

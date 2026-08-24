@@ -1,5 +1,6 @@
 import { LoggingNotifier } from './application/ports/notifications.js';
 import type { EmailSender, SmsSender } from './application/ports/notifications.js';
+import { QueuedMailer } from './application/mail/mailer.js';
 import { NominatimGeocoder, type Geocoder } from './infrastructure/geo/pincodeLocation.js';
 
 /**
@@ -9,8 +10,24 @@ import { NominatimGeocoder, type Geocoder } from './infrastructure/geo/pincodeLo
  */
 let notifierInstance: (EmailSender & SmsSender) | undefined;
 
+/**
+ * Email goes through the queue; SMS still has no provider (see the Phase 2 note), so the
+ * logging sender covers it. They are one object because every use case takes one notifier.
+ */
+class Notifier implements EmailSender, SmsSender {
+  private readonly mailer = new QueuedMailer();
+  private readonly sms = new LoggingNotifier();
+
+  async send(message: Parameters<EmailSender['send']>[0] | Parameters<SmsSender['send']>[0]): Promise<void> {
+    if (message.template === 'phone-otp') {
+      return this.sms.send(message as Parameters<SmsSender['send']>[0]);
+    }
+    return this.mailer.send(message as Parameters<EmailSender['send']>[0]);
+  }
+}
+
 export function notifier(): EmailSender & SmsSender {
-  notifierInstance ??= new LoggingNotifier();
+  notifierInstance ??= new Notifier();
   return notifierInstance;
 }
 

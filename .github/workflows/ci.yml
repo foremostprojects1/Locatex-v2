@@ -8,6 +8,20 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+
+    # Redis is real here rather than mocked: the email queue is the path every notification
+    # takes in production, and a queue test that is skipped in CI proves nothing.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -29,6 +43,7 @@ jobs:
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017
           JWT_SECRET: ci-secret-that-is-at-least-32-characters
+          REDIS_URL: redis://127.0.0.1:6379
 
       # "It compiles" is not "it boots and serves". This builds the real artefacts, starts
       # the server as a host would, and checks the single deployable unit still works.

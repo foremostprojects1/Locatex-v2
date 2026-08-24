@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 8 — Email (Phase 6 is blocked, see below) |
-| **Last completed** | Phase 7 — Approval & admin: the review queue, KPI cards, account management, the contact inbox and timed news (124 API + 48 contract tests green, 15 deployable checks) |
-| **Next action** | P8.1 — the `Mailer` interface and the Gmail SMTP adapter |
+| **Current phase** | Phase 9 — Buyer features (Phase 6 is blocked, see below) |
+| **Last completed** | Phase 8 — Email: eleven templates, a queued mailer with an audit log, and a daily-volume guard against Gmail's ceiling (140 API + 48 contract tests green, 15 deployable checks) |
+| **Next action** | P9.1 — server-side favourites, replacing v1's localStorage |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 172 tests should pass
+pnpm test                     # 188 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -244,11 +244,40 @@ Taken before Phase 6 because Phase 6 cannot start until a Google account is conn
   status, and the last active administrator cannot be suspended. Either would lock everyone
   out of the dashboard.
 
-## Phase 8 — Email · `todo`
+## Phase 8 — Email · `done`
 
-P8.1 `Mailer` interface + Gmail SMTP adapter (app password) · P8.2 React Email templates ×11 ·
-P8.3 BullMQ queue with retries · P8.4 `email_log` + admin view · P8.5 "Send mail as" alias
-setup · P8.6 daily-volume monitor against the ~500/day cap
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P8.1 | `Mailer` interface + Gmail SMTP adapter | `done` | Chosen by configuration, not `NODE_ENV`; with no `SMTP_HOST` the system logs instead of sending |
+| P8.2 | Eleven templates | `done` (not React Email — see below) | Every one renders a subject, HTML and text, escapes what a stranger typed, and never prints "undefined" |
+| P8.3 | BullMQ queue with retries | `done` | A failed send is recorded and rethrown so the queue retries; the log row tells the truth after the retry |
+| P8.4 | `email_log` + admin view | `done` | `/admin/emails`, filterable by status and template, with the day's headroom |
+| P8.5 | "Send mail as" alias setup | `done` (documented) | `MAIL_FROM` plus the Gmail alias steps in `.env.example` — the alias must be verified in Gmail or it rewrites the From header |
+| P8.6 | Daily-volume monitor | `done` | Ordinary mail is suppressed at the limit and logged as such; a password reset goes anyway |
+
+### Phase 8 notes
+
+- **Templates are functions, not React Email components** — a deviation from the approved
+  plan, and a deliberate one. These are eleven static single-column messages; rendering them
+  with React would put a JSX toolchain and a renderer inside the API process to produce
+  output identical to the strings we now have. Each template is a pure function and is unit
+  tested directly. Say the word if React Email is wanted anyway and it is a contained change.
+- **The log row is written before the job is queued.** A message that is never delivered is
+  still a message somebody can find and re-send. The job id *is* the log id, so a redelivery
+  lands on the same row rather than sending twice.
+- **Critical mail ignores the daily ceiling.** Verification, password reset and the
+  password-changed notice go out even at the limit: locking someone out of their own account
+  to protect a quota is the wrong trade. Everything else is suppressed and recorded.
+- **A gap the tests found:** the dedupe index existed only in the migration, so on any
+  machine where migrations had not run it did not exist at all — and `QueuedMailer` was
+  catching a duplicate-key error that would never arrive. It is now declared on the schema as
+  well, which is what the property indexes already do.
+- **CI now runs a real Redis.** The email queue is the path every notification takes in
+  production, and a queue test skipped in CI proves nothing.
+
+**Before launch:** create the Gmail app password and, if mail should come from
+`info@locatex.in` rather than the Gmail address, verify that alias under Gmail →
+Settings → Accounts → "Send mail as". Gmail rewrites the From header otherwise.
 
 ## Phase 9 — Buyer features · `todo`
 

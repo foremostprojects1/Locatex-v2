@@ -51,6 +51,36 @@ const schema = z.object({
   AUTH_RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().positive().default(15),
   OTP_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 
+  /**
+   * Outgoing mail. Gmail with an app password (decision D6) — a Google account with
+   * two-factor authentication issues a sixteen-character password for one application, so
+   * the real account password is never in the environment and revoking it costs nothing.
+   *
+   * With no host configured the system logs what it would have sent instead of sending it,
+   * which is how development and the test suite run.
+   */
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  /** `true` for implicit TLS on 465; 587 upgrades with STARTTLS and wants this off. */
+  SMTP_SECURE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+
+  MAIL_FROM: z.string().email().optional(),
+  MAIL_FROM_NAME: z.string().default('LocateX'),
+  MAIL_REPLY_TO: z.string().email().optional(),
+
+  /**
+   * Gmail will not send more than about 500 messages a day from a free account, and it
+   * enforces that by locking the account rather than by refusing one message. We stop
+   * short of it ourselves and tell an administrator well before we get there.
+   */
+  EMAIL_DAILY_LIMIT: z.coerce.number().int().positive().default(450),
+  EMAIL_DAILY_WARN_AT: z.coerce.number().int().positive().default(350),
+
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_ACCESS_TTL: z.string().default('15m'),
   REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),

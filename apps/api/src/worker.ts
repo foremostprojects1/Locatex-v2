@@ -1,4 +1,5 @@
 import { startWorkers } from './infrastructure/queue/worker.js';
+import { registerEmailHandler } from './application/mail/register.js';
 import { connectMongo, disconnectMongo } from './infrastructure/db/mongo.js';
 import { logger } from './infrastructure/observability/logger.js';
 import { closeQueues } from './infrastructure/queue/queues.js';
@@ -6,6 +7,7 @@ import { closeQueues } from './infrastructure/queue/queues.js';
 /** Second process from the same image: runs the queues, never serves HTTP. */
 async function main(): Promise<void> {
   await connectMongo();
+  registerEmailHandler();
   const workers = startWorkers();
   logger.info({ queues: workers.length }, 'locatex worker started');
 
