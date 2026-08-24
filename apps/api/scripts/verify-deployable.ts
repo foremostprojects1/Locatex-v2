@@ -39,6 +39,16 @@ async function statusOf(pathname: string): Promise<number> {
   return response.status;
 }
 
+async function postStatus(pathname: string): Promise<number> {
+  const response = await fetch(`${BASE}${pathname}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+    redirect: 'manual',
+  });
+  return response.status;
+}
+
 async function waitForBoot(server: ChildProcess): Promise<void> {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     if (server.exitCode !== null) throw new Error(`server exited with code ${server.exitCode}`);
@@ -98,6 +108,11 @@ async function main(): Promise<void> {
       (await statusOf('/images/locatex/brand/logo-dark.png')) === 200,
     );
     check('the reference API answers', (await statusOf('/api/v1/reference/districts')) === 200);
+    check('the listings API answers', (await statusOf('/api/v1/properties')) === 200);
+    check(
+      'posting a listing without a session is refused',
+      (await statusOf('/api/v1/properties')) === 200 && (await postStatus('/api/v1/properties')) === 401,
+    );
     check('readiness reports the database', (await statusOf('/readyz')) === 200);
 
     const unknownApi = await fetch(`${BASE}/api/v1/nope`);

@@ -46,9 +46,19 @@ export async function stopHarness(): Promise<void> {
   setNotifier(undefined);
 }
 
-/** Between tests: empty every collection but keep the connection and indexes. */
-export async function resetDatabase(): Promise<void> {
-  const collections = await mongoose.connection.db?.collections();
-  await Promise.all((collections ?? []).map((collection) => collection.deleteMany({})));
+/**
+ * Between tests: empty every collection but keep the connection and indexes.
+ *
+ * `keepReference` leaves the seeded Gujarat hierarchy in place. Re-seeding 8,917 villages
+ * before every test would dominate the suite's runtime, and reference data is read-only —
+ * no test can dirty it for the next one.
+ */
+export async function resetDatabase(options: { keepReference?: boolean } = {}): Promise<void> {
+  const collections = (await mongoose.connection.db?.collections()) ?? [];
+  const target = options.keepReference
+    ? collections.filter((collection) => !collection.collectionName.startsWith('ref_'))
+    : collections;
+
+  await Promise.all(target.map((collection) => collection.deleteMany({})));
   notifierInstance?.clear();
 }

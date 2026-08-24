@@ -16,9 +16,9 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 4 — Property core |
-| **Last completed** | Phase 3 — Gujarat reference data: 34 districts, 394 talukas, 8,917 villages, 1,026 pincodes, cascade + pincode endpoints, land vocabulary (63 API + 21 contract tests green, 11 deployable checks) |
-| **Next action** | P4.1 — Property model with the status state machine |
+| **Current phase** | Phase 5 — Submit wizard |
+| **Last completed** | Phase 4 — Property core: the listing model, the lifecycle state machine, search with keyset pagination and radius queries, and role-aware serialisation (95 API + 40 contract tests green, 13 deployable checks) |
+| **Next action** | P5.1 — server-side draft and autosave endpoints |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
 
 **To resume:**
@@ -26,7 +26,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 33 tests should pass
+pnpm test                     # 135 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -137,15 +137,33 @@ Nominatim (which returns a bounding box, so the radius is measured) and cached p
 **Needs a human check before launch:** taluka-to-district assignments for the districts
 created after the GeoNames snapshot are curated by hand — see `docs/attribution.md`.
 
-## Phase 4 — Property core · `todo`
+## Phase 4 — Property core · `done`
 
-| # | Task | Verify by |
-| --- | --- | --- |
-| P4.1 | Property schema incl. gov record, area units, precision fields | Schema tests |
-| P4.2 | Status state machine (draft → pending → approved/rejected → sold) | Illegal transitions rejected |
-| P4.3 | Search: filters, pagination, `2dsphere` radius query | Query tests |
-| P4.4 | Role-aware serializers: **price band (₹1 L steps), contact hidden, pin hidden for guests** | Guest response proven free of price/contact/exact pin |
-| P4.5 | Views counter, featured flag | |
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P4.1 | Property schema incl. gov record, area units, precision fields | `done` | Reference slugs checked against Phase 3; unknown district, cross-district taluka and invented amenity all rejected with the field named |
+| P4.2 | Status state machine (draft → pending → approved/rejected → sold) | `done` | 7 statuses, 12 transitions as a table; illegal moves return 409, rejection without a reason 400 |
+| P4.3 | Search: filters, pagination, `2dsphere` radius query | `done` | Keyset pagination proven disjoint across pages and under price ties; radius query separates Morbi from Surat |
+| P4.4 | Role-aware serializers: price band, contact hidden, pin hidden for guests | `done` | Guest response asserted free of the exact price, phone, email, survey number and pin |
+| P4.5 | Views counter, featured flag | `done` | The owner's own visit is not counted; only an admin may feature, and only a live listing |
+
+### Phase 4 notes
+
+- **The guest pin is snapped to a grid, not jittered.** A random offset re-rolled per request
+  could be averaged away by asking a few times; a 0.01° cell (~1.1 km) returns the same answer
+  every time, so repeating the request reveals nothing that asking once did not.
+- **Pagination is keyset, not `skip`.** With listings being approved while someone is
+  scrolling, `skip` silently repeats and drops rows. The cursor carries (sort value, id) and
+  is opaque, and a crafted cursor is rejected rather than reaching a query operator.
+- **`sanitizeFilter` bites any filter we write ourselves.** It wraps any value containing a
+  `$` key in `$eq`, which broke `$in`, `$gte`, `$all`, `$text` and `$geoWithin` alike — the
+  same trap as the `$regex` one in Phase 3. Operator objects built from validated input are
+  now marked with `mongoose.trusted()` rather than turning the protection off.
+- **A live listing keeps its price and words editable; everything reviewed is frozen.** An
+  administrator is not exempt — an admin quietly editing a reviewed survey number is exactly
+  the change nobody would ever find.
+- Indexes are created by migration rather than by Mongoose at boot, so a deploy never builds
+  an index in the foreground against a live Atlas collection.
 
 ## Phase 5 — Submit wizard · `todo`
 

@@ -7,7 +7,15 @@ import { logger } from '../../infrastructure/observability/logger.js';
  */
 export interface EmailMessage {
   to: string;
-  template: 'verify-email' | 'reset-password' | 'password-changed' | 'broker-approved' | 'broker-rejected';
+  template:
+    | 'verify-email'
+    | 'reset-password'
+    | 'password-changed'
+    | 'broker-approved'
+    | 'broker-rejected'
+    | 'property-submitted'
+    | 'property-approved'
+    | 'property-rejected';
   data: Record<string, string>;
 }
 
