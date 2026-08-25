@@ -9,3 +9,4 @@ export * from './wizard.js';
 export * from './admin.js';
 export * from './buyer.js';
 export * from './chat.js';
+export * from './documents.js';

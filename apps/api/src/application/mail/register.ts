@@ -2,7 +2,8 @@ import { EMAIL_JOB, deliverQueuedEmail } from './mailer.js';
 import { registerHandler } from '../../infrastructure/queue/worker.js';
 import { getQueue } from '../../infrastructure/queue/queues.js';
 import { sendUnreadDigests } from '../chat/unreadDigest.js';
-import { notifier } from '../../container.js';
+import { sweepAbandonedUploads } from '../documents/documents.js';
+import { documentStorage, notifier } from '../../container.js';
 import type { EmailMessage } from '../ports/notifications.js';
 
 /**
@@ -22,7 +23,13 @@ export function registerEmailHandler(): void {
   );
 
   registerHandler('chatDigest', UNREAD_DIGEST_JOB, async () => sendUnreadDigests(notifier()));
+
+  registerHandler('maintenance', SWEEP_UPLOADS_JOB, async () =>
+    sweepAbandonedUploads(documentStorage()),
+  );
 }
+
+export const SWEEP_UPLOADS_JOB = 'sweep-uploads';
 
 export const UNREAD_DIGEST_JOB = 'unread-digest';
 
@@ -42,6 +49,25 @@ export async function scheduleUnreadDigest(): Promise<void> {
       repeat: { pattern: '7 * * * *' },
       jobId: 'unread-digest-hourly',
       removeOnComplete: { count: 24 },
+    },
+  );
+}
+
+/**
+ * Clears out uploads that were started and abandoned.
+ *
+ * Nightly is often enough: an orphan costs nothing but space, and on a 15 GB account space
+ * is exactly what runs out. The fixed job id means restarting the worker replaces the
+ * schedule rather than adding a second one.
+ */
+export async function scheduleUploadSweep(): Promise<void> {
+  await getQueue('maintenance').add(
+    SWEEP_UPLOADS_JOB,
+    {},
+    {
+      repeat: { pattern: '23 3 * * *' },
+      jobId: 'sweep-uploads-nightly',
+      removeOnComplete: { count: 14 },
     },
   );
 }

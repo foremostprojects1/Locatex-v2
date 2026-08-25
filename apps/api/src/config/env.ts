@@ -81,6 +81,20 @@ const schema = z.object({
   EMAIL_DAILY_LIMIT: z.coerce.number().int().positive().default(450),
   EMAIL_DAILY_WARN_AT: z.coerce.number().int().positive().default(350),
 
+  /**
+   * Google Drive for documents (decision D1 — the owner's personal Drive, since there is
+   * no Workspace). With no client id configured the system runs on in-memory storage and
+   * every upload endpoint reports that storage is not connected, which is how development
+   * and the test suite run.
+   */
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  /**
+   * Encrypts the stored refresh token. Any passphrase works — it is hashed to a key — but
+   * changing it makes the stored token unreadable and the Drive must be reconnected.
+   */
+  STORAGE_TOKEN_KEY: z.string().min(16).optional(),
+
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_ACCESS_TTL: z.string().default('15m'),
   REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),

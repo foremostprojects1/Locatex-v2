@@ -1,5 +1,9 @@
 import { startWorkers } from './infrastructure/queue/worker.js';
-import { registerEmailHandler, scheduleUnreadDigest } from './application/mail/register.js';
+import {
+  registerEmailHandler,
+  scheduleUnreadDigest,
+  scheduleUploadSweep,
+} from './application/mail/register.js';
 import { connectMongo, disconnectMongo } from './infrastructure/db/mongo.js';
 import { logger } from './infrastructure/observability/logger.js';
 import { closeQueues } from './infrastructure/queue/queues.js';
@@ -9,6 +13,7 @@ async function main(): Promise<void> {
   await connectMongo();
   registerEmailHandler();
   await scheduleUnreadDigest();
+  await scheduleUploadSweep();
   const workers = startWorkers();
   logger.info({ queues: workers.length }, 'locatex worker started');
 

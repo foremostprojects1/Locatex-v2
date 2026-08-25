@@ -2,6 +2,12 @@ import { LoggingNotifier } from './application/ports/notifications.js';
 import type { EmailSender, SmsSender } from './application/ports/notifications.js';
 import { QueuedMailer } from './application/mail/mailer.js';
 import { NominatimGeocoder, type Geocoder } from './infrastructure/geo/pincodeLocation.js';
+import {
+  InMemoryDocumentStorage,
+  type DocumentStorage,
+} from './application/ports/documentStorage.js';
+import { GoogleDriveStorage } from './infrastructure/storage/googleDrive.js';
+import { env } from './config/env.js';
 
 /**
  * Composition root — the only place that decides which implementation of a port is used.
@@ -46,4 +52,24 @@ export function geocoder(): Geocoder {
 /** Tests substitute a stub, so no suite ever calls a public geocoding service. */
 export function setGeocoder(instance: Geocoder | undefined): void {
   geocoderInstance = instance;
+}
+
+/**
+ * Document storage.
+ *
+ * Chosen by configuration rather than by `NODE_ENV`: a staging box may deliberately keep
+ * documents in memory, and development should not need a Google account to run the wizard.
+ */
+let storageInstance: DocumentStorage | undefined;
+
+export function documentStorage(): DocumentStorage {
+  storageInstance ??= env().GOOGLE_CLIENT_ID
+    ? new GoogleDriveStorage()
+    : new InMemoryDocumentStorage();
+  return storageInstance;
+}
+
+/** Tests substitute the in-memory implementation, then reset. */
+export function setDocumentStorage(instance: DocumentStorage | undefined): void {
+  storageInstance = instance;
 }

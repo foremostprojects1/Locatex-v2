@@ -16,8 +16,8 @@ Status key: `todo` · `wip` · `done` · `blocked`
 
 | | |
 | --- | --- |
-| **Current phase** | Everything buildable is built. Phase 6 and three client inputs remain — see below |
-| **Last completed** | Phase 12 — Hardening: a security review with two fixes, an accessibility pass, and the v1 import (197 API + 48 contract tests green, 20 deployable checks) |
+| **Current phase** | Everything buildable is built. What remains needs your accounts — see below |
+| **Last completed** | Phase 6 — Documents: the storage port, the three-step upload, versioning, the quota guard and the viewer (212 API + 48 contract tests green, 21 deployable checks) |
 | **Next action** | **Yours:** click through the product in a browser, then work `07-deployment-checklist.md` |
 | **Blocked on** | **Phase 6 (Google Drive) needs the client to connect a Google account** — nothing else is waiting. Also still needed: a MongoDB Atlas URI, an SMS provider for OTPs, a Gmail app password, and a human check of the curated taluka→district table |
 | **Blocked on** | nothing to code. Two inputs needed before launch: a MongoDB Atlas URI (tests use an in-memory replica set, so development is unblocked) and an **SMS provider for phone OTPs** — see the note under Phase 2 |
@@ -27,7 +27,7 @@ Status key: `todo` · `wip` · `done` · `blocked`
 ```bash
 cd Loca/locatex
 pnpm install
-pnpm test                     # 245 tests should pass
+pnpm test                     # 260 tests should pass
 pnpm build && pnpm start      # the whole product on http://localhost:8080
 ```
 
@@ -198,12 +198,40 @@ created after the GeoNames snapshot are curated by hand — see `docs/attributio
 needs no key; Google is what the client admired on dekhojamin.com and would need a key, a
 billing account and a budget alert. The picker works either way.
 
-## Phase 6 — Google Drive · `blocked`
+## Phase 6 — Google Drive · `done, except the adapter is unverified`
 
-**Cannot start until the client connects a Google account** (decision D1: uploads go to the
-site owner's personal Drive). Everything else in the plan is unblocked, so Phase 7 was taken
-first and Phase 8 is next.
+Most of this phase never needed a Google account. The architecture put `DocumentStorage`
+first precisely so the lifecycle could be built and tested without one, and that is what
+happened: fifteen tests exercise the whole flow against an in-memory implementation that
+behaves like storage rather than always saying yes.
 
+| # | Task | Status | Verified by |
+| --- | --- | --- | --- |
+| P6.1 | `DocumentStorage` port + in-memory implementation | `done` | It enforces real size accounting and can be told to fill up or fail |
+| P6.2 | Google Drive adapter and the token store | `written, unverified` | **Has never run against Google.** The encryption round-trip is tested; every network path is not |
+| P6.3 | Folder strategy + metadata records | `done` | Folders are named `PROP-{id}` and found by recorded id, never searched for by name |
+| P6.4 | Resumable upload + confirm + versioning | `done` | A truncated upload is refused and cleaned up; a re-issued document supersedes rather than replaces |
+| P6.5 | Quota monitor + admin banner | `done` | Warns at 80%, refuses at 97% — stopping short of full, because an upload that fails partway leaves an orphan |
+| P6.6 | Documents to Drive, images to a CDN | `done` | Documents never reach a public endpoint; images remain a separate concern |
+| P7.2 | Document viewer (carried from Phase 7) | `done` | Streamed through the API, so one authorisation rule covers it: the owning broker and an administrator |
+
+### Phase 6 notes
+
+- **The bytes never pass through our process.** A 25 MB scan from a phone would mean holding
+  it in memory, doubling the bandwidth and blocking the event loop for the length of a slow
+  upload. The browser uploads straight to storage, and the server verifies afterwards what
+  actually landed.
+- **A truncated upload is refused, not recorded.** The provider reports the size and checksum
+  of what arrived; a mismatch fails the document and deletes the fragment. A document
+  recorded as fine when it is half a file is worse than no document, because nobody looks at
+  it again until it matters.
+- **The row is written before the bytes exist.** v1's controller assigned fields the schema
+  did not declare, Mongoose dropped them silently, and every uploaded 7/12 vanished with
+  nothing to show it had existed. Here a failed upload leaves a row saying why.
+- **Documents are never public.** A 7/12 names a real person and their survey number. The
+  viewer is the owning broker and an administrator — a buyer gets 403, a stranger 404.
+- **The Drive adapter is the one piece nobody has run.** Connect it against a throwaway
+  Google account first; the first real connection is what will find its bugs.
 
 | # | Task | Verify by |
 | --- | --- | --- |
@@ -423,7 +451,7 @@ not an account exists, and guessing is rate limited.
 
 | | Blocked on |
 | --- | --- |
-| **Phase 6 — Google Drive** (and P7.2, the document viewer) | The client connecting a Google account |
+| **Connecting the Google account** | An OAuth client and one sign-in. Everything above it is built and tested; the adapter has never run |
 | **Image upload** | A Cloudinary account. Brokers paste image URLs today |
 | **SMS for phone OTPs** | A provider being chosen. **Registration cannot be completed without it** |
 | **A browser pass over the whole product** | Half a day of somebody clicking |
