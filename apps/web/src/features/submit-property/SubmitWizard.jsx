@@ -131,7 +131,12 @@ export default function SubmitWizard({ draftId, propertyId, onFinished, onDraftO
         </div>
 
         <div className="box-info-property">
-          <StepComponent data={draft.data} setField={draft.setField} errorFor={errorFor} />
+          <StepComponent
+            data={draft.data}
+            setField={draft.setField}
+            errorFor={errorFor}
+            propertyId={propertyId}
+          />
         </div>
 
         {/*

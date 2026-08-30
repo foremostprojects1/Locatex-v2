@@ -1,5 +1,6 @@
 import { useLandAttributes } from "../../../hooks/useReference";
-import { CheckboxGrid, Field, TextInput } from "../Field";
+import { CheckboxGrid } from "../Field";
+import ImageUploader from "../ImageUploader";
 
 /**
  * What the land has, and what it does not.
@@ -9,7 +10,7 @@ import { CheckboxGrid, Field, TextInput } from "../Field";
  * v1 keeps meaning what it meant, since every one of v1's nine attributes is in that list
  * with its original value recorded alongside.
  */
-export default function StepFeatures({ data, setField, errorFor }) {
+export default function StepFeatures({ data, setField, propertyId }) {
   const { amenities, disadvantages, loading } = useLandAttributes();
 
   const toggle = (field) => (slug) => {
@@ -49,51 +50,11 @@ export default function StepFeatures({ data, setField, errorFor }) {
       )}
 
       <h6 className="lx-section-title">Photographs</h6>
-      <p className="lx-note">
-        Paste image links for now — uploading from your phone arrives with the document
-        upload in the next release.
-      </p>
-
-      {images.map((image, index) => (
-        <div className="box grid-2 gap-30" key={`${image.url}-${index}`}>
-          <Field label={`Photo ${index + 1}`} error={errorFor(`images.${index}.url`)}>
-            <TextInput
-              value={image.url}
-              onChange={(value) =>
-                setField(
-                  "images",
-                  images.map((entry, position) =>
-                    position === index ? { ...entry, url: value } : entry,
-                  ),
-                )
-              }
-              placeholder="https://…"
-            />
-          </Field>
-          <Field label="Caption">
-            <TextInput
-              value={image.alt}
-              onChange={(value) =>
-                setField(
-                  "images",
-                  images.map((entry, position) =>
-                    position === index ? { ...entry, alt: value } : entry,
-                  ),
-                )
-              }
-              placeholder="Looking north from the road"
-            />
-          </Field>
-        </div>
-      ))}
-
-      <button
-        type="button"
-        className="tf-btn style-border pd-10"
-        onClick={() => setField("images", [...images, { url: "", alt: "", isPrimary: images.length === 0 }])}
-      >
-        Add a photo
-      </button>
+      <ImageUploader
+        images={images}
+        propertyId={propertyId}
+        onChange={(next) => setField("images", next)}
+      />
     </>
   );
 }

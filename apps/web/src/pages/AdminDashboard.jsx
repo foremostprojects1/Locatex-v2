@@ -5,6 +5,7 @@ import ReviewQueue from "../features/admin/ReviewQueue";
 import PeoplePanel from "../features/admin/PeoplePanel";
 import InboxPanel from "../features/admin/InboxPanel";
 import NewsPanel from "../features/admin/NewsPanel";
+import StoragePanel from "../features/admin/StoragePanel";
 import { useSession } from "../hooks/useSession";
 
 const TABS = [
@@ -12,6 +13,7 @@ const TABS = [
   { id: "people", label: "People" },
   { id: "inbox", label: "Messages" },
   { id: "news", label: "News" },
+  { id: "storage", label: "Storage" },
 ];
 
 /**
@@ -68,6 +70,7 @@ export default function AdminDashboard() {
       {tab === "people" ? <PeoplePanel onChanged={stats.reload} /> : null}
       {tab === "inbox" ? <InboxPanel onChanged={stats.reload} /> : null}
       {tab === "news" ? <NewsPanel /> : null}
+      {tab === "storage" ? <StoragePanel /> : null}
     </div>
   );
 }

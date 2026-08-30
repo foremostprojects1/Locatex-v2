@@ -14,6 +14,11 @@ import { ContactMessageModel } from '../../infrastructure/db/models/ContactMessa
 import { EmailLogModel } from '../../infrastructure/db/models/EmailLog.js';
 import { sentInLastDay } from '../../application/mail/mailer.js';
 import { env } from '../../config/env.js';
+import {
+  disconnectDrive,
+  driveConsentUrl,
+  redirectUri,
+} from '../../application/documents/connectDrive.js';
 import { serializeProperty } from '../../domain/property/serialize.js';
 import { recordAudit } from '../../infrastructure/db/models/AuditEvent.js';
 import { requireRole, userOf } from '../middleware/authenticate.js';
@@ -256,6 +261,39 @@ adminRouter.get('/emails', async (req, res, next) => {
         shouldWarn: today >= config.EMAIL_DAILY_WARN_AT,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Connecting Google Drive
+// ---------------------------------------------------------------------------
+
+/** Step one: where to send the administrator to approve access. */
+adminRouter.post('/storage/connect', async (req, res, next) => {
+  try {
+    const admin = userOf(req);
+    res.json({ url: await driveConsentUrl(admin.id), redirectUri: redirectUri() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.post('/storage/disconnect', async (req, res, next) => {
+  try {
+    const admin = userOf(req);
+    await disconnectDrive();
+
+    await recordAudit({
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: 'storage.disconnect',
+      subjectType: 'storage',
+      subjectId: 'google_drive',
+    });
+
+    res.json({ connected: false });
   } catch (error) {
     next(error);
   }

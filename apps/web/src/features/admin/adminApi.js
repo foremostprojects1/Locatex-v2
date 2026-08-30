@@ -26,6 +26,10 @@ export const adminApi = {
   setContactStatus: (id, status, note) =>
     patch(`/admin/contact-messages/${id}`, note ? { status, note } : { status }),
 
+  storage: () => get("/documents/storage"),
+  connectStorage: () => post("/admin/storage/connect", {}),
+  disconnectStorage: () => post("/admin/storage/disconnect", {}),
+
   news: () => get("/admin/news"),
   createNews: (item) => post("/admin/news", item),
   updateNews: (id, changes) => patch(`/admin/news/${id}`, changes),

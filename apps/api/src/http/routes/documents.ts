@@ -8,6 +8,7 @@ import {
   requestUpload,
   storageStatus,
 } from '../../application/documents/documents.js';
+import { signImageUpload, signImageUploadSchema } from '../../application/media/images.js';
 import { requireRole, userOf } from '../middleware/authenticate.js';
 import { documentStorage } from '../../container.js';
 
@@ -121,6 +122,23 @@ documentRouter.delete('/:documentId', async (req, res, next) => {
   try {
     await removeDocument(String(req.params.documentId), userOf(req));
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+/**
+ * A signature the browser uses to upload a photograph straight to Cloudinary.
+ *
+ * Signed rather than an unsigned preset: an unsigned preset lets anyone who reads the page
+ * source upload anything to the account, and the first sign of it would be the bill. The
+ * folder and the expiry are fixed here rather than trusted from the browser.
+ */
+documentRouter.post('/images/signature', async (req, res, next) => {
+  try {
+    const { propertyId } = signImageUploadSchema.parse(req.body ?? {});
+    res.json({ data: signImageUpload(propertyId) });
   } catch (error) {
     next(error);
   }
