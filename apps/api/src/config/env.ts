@@ -95,18 +95,6 @@ const schema = z.object({
    */
   STORAGE_TOKEN_KEY: z.string().min(16).optional(),
 
-  /**
-   * Cloudinary for listing photographs. Images and documents go to different places on
-   * purpose: Drive has no transformations and throttles downloads, so a listing page
-   * pulling ten photographs from it would be slow and would burn the 15 GB account.
-   *
-   * Unset and the upload endpoint says image hosting is not configured, and brokers paste
-   * links instead — which is what the site did before this existed.
-   */
-  CLOUDINARY_CLOUD_NAME: z.string().optional(),
-  CLOUDINARY_API_KEY: z.string().optional(),
-  CLOUDINARY_API_SECRET: z.string().optional(),
-
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_ACCESS_TTL: z.string().default('15m'),
   REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),

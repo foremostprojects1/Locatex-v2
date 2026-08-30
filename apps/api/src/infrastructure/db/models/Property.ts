@@ -145,6 +145,12 @@ const propertySchema = new Schema(
 
     deletedAt: { type: Date, default: null },
 
+    /**
+     * Created by `pnpm seed:demo`. Marked so the demonstration data can be removed
+     * precisely, without touching anything a real person has done.
+     */
+    isDemo: { type: Boolean, default: false },
+
     /** The v1 `_id` this listing came from, so re-running the import updates in place. */
     legacyId: { type: String, default: null },
   },

@@ -2,13 +2,13 @@ import { Router, type Router as ExpressRouter } from 'express';
 import { pipeline } from 'node:stream/promises';
 import {
   confirmUpload,
+  listPhotos,
   listDocuments,
   openDocument,
   removeDocument,
   requestUpload,
   storageStatus,
 } from '../../application/documents/documents.js';
-import { signImageUpload, signImageUploadSchema } from '../../application/media/images.js';
 import { requireRole, userOf } from '../middleware/authenticate.js';
 import { documentStorage } from '../../container.js';
 
@@ -36,6 +36,15 @@ propertyDocumentRouter.use(requireRole('broker', 'admin'));
 documentRouter.get('/storage', requireRole('admin'), async (_req, res, next) => {
   try {
     res.json({ data: await storageStatus(documentStorage()) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** The photographs on a listing, for the broker editing it. */
+propertyDocumentRouter.get('/:id/photos', async (req, res, next) => {
+  try {
+    res.json({ data: await listPhotos(String(req.params.id)) });
   } catch (error) {
     next(error);
   }
@@ -127,19 +136,3 @@ documentRouter.delete('/:documentId', async (req, res, next) => {
   }
 });
 
-
-/**
- * A signature the browser uses to upload a photograph straight to Cloudinary.
- *
- * Signed rather than an unsigned preset: an unsigned preset lets anyone who reads the page
- * source upload anything to the account, and the first sign of it would be the bill. The
- * folder and the expiry are fixed here rather than trusted from the browser.
- */
-documentRouter.post('/images/signature', async (req, res, next) => {
-  try {
-    const { propertyId } = signImageUploadSchema.parse(req.body ?? {});
-    res.json({ data: signImageUpload(propertyId) });
-  } catch (error) {
-    next(error);
-  }
-});

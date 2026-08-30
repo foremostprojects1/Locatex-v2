@@ -6,6 +6,7 @@ import Preloader from "./components/common/Preloader";
 import Lightbox from "./components/common/Lightbox";
 import NotFound from "./pages/NotFound";
 import { PAGE_META } from "./constants/pageMeta";
+import RequireAuth from "./components/common/RequireAuth";
 import { SearchPopupContext } from "./hooks/useSearchPopup";
 import { SessionProvider } from "./hooks/useSession";
 import { FavouritesProvider } from "./features/listings/useFavourites";
@@ -67,9 +68,32 @@ export default function App() {
             ))}
             <Route path="*" element={<NotFound />} />
           </Route>
-          <Route element={<DashboardLayout />}>
+          {/*
+            The whole dashboard is behind the guard, not each page inside it. A page added
+            here later cannot accidentally be public, and a signed-out visitor never sees
+            the dashboard chrome rendered around a sign-in prompt.
+          */}
+          <Route
+            element={
+              <RequireAuth>
+                <DashboardLayout />
+              </RequireAuth>
+            }
+          >
             {dashboardPages.map(({ route, Component }) => (
-              <Route key={route} path={route} element={<Component />} />
+              <Route
+                key={route}
+                path={route}
+                element={
+                  route === "/admin" ? (
+                    <RequireAuth role="admin">
+                      <Component />
+                    </RequireAuth>
+                  ) : (
+                    <Component />
+                  )
+                }
+              />
             ))}
           </Route>
         </Routes>

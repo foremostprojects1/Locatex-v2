@@ -50,7 +50,7 @@ async function actor(role: 'buyer' | 'broker' | 'admin') {
 const listing = (overrides: Record<string, unknown> = {}) => ({
   title: 'Fertile farmland with borewell near Morbi',
   propertyType: 'land',
-  listingType: 'sale',
+  listingType: 'rent',
   pricePaise: 72_00_000_00,
   area: { value: 4, unit: 'vigha' },
   location: {
@@ -122,7 +122,7 @@ describe('the broker’s public page', () => {
 
     const first = await publish(broker, admin);
     await publish(broker, admin, { title: 'A second plot on the Sanala road' });
-    await broker.post(`/api/v1/properties/${first}/status`).send({ action: 'mark-sold' }).expect(200);
+    await broker.post(`/api/v1/properties/${first}/status`).send({ action: 'mark-rented' }).expect(200);
 
     const page = await request(app)
       .get(`/api/v1/brokers/${broker.account.userId}?limit=1`)

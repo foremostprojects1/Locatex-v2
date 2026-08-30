@@ -14,6 +14,14 @@ export const DOCUMENT_CATEGORIES = [
   'utarotar',
   'na_order',
   'map_sketch',
+  /**
+   * A listing photograph.
+   *
+   * The same upload machinery as the paperwork, because everything now goes to Drive — but
+   * a photograph is the one kind that is *public*, so it is served from its own endpoint
+   * rather than the authorised document viewer.
+   */
+  'photo',
   'other',
 ] as const;
 export const documentCategorySchema = z.enum(DOCUMENT_CATEGORIES);
@@ -25,6 +33,7 @@ export const DOCUMENT_CATEGORY_LABEL: Record<DocumentCategory, string> = {
   utarotar: 'Utarotar (chain of ownership)',
   na_order: 'NA order',
   map_sketch: 'Map or sketch',
+  photo: 'Photograph',
   other: 'Something else',
 };
 
@@ -35,6 +44,7 @@ export const DOCUMENT_CATEGORY_HINT: Record<DocumentCategory, string> = {
   utarotar: 'How ownership reached the present holder.',
   na_order: 'Only if the land has been converted to non-agricultural use.',
   map_sketch: 'A boundary sketch, if you have one.',
+  photo: 'Shown publicly on the listing.',
   other: 'Anything else that helps a buyer trust the listing.',
 };
 
@@ -52,8 +62,31 @@ export const ALLOWED_DOCUMENT_TYPES = [
   'image/webp',
 ] as const;
 
+/** A photograph has to be an image — a PDF cannot go on a listing card. */
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
 export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
 export const MAX_DOCUMENTS_PER_PROPERTY = 10;
+
+/**
+ * Photographs are capped lower and counted separately.
+ *
+ * A phone camera produces 3–5 MB an image, and a listing wants several — sharing the
+ * ten-document allowance between paperwork and photographs would mean choosing between
+ * them.
+ */
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+export const MAX_IMAGES_PER_PROPERTY = 12;
+
+/** Paperwork categories — everything a reviewer reads, as opposed to what a buyer sees. */
+export const PAPERWORK_CATEGORIES: readonly DocumentCategory[] = [
+  'doc_712',
+  'doc_8a',
+  'utarotar',
+  'na_order',
+  'map_sketch',
+  'other',
+];
 
 export const UPLOAD_SESSION_STATUSES = ['open', 'completed', 'expired', 'aborted'] as const;
 export const DOCUMENT_STATUSES = ['pending', 'uploaded', 'failed', 'deleted'] as const;

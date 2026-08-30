@@ -56,10 +56,10 @@ const FOOTER_COLUMNS = [
     columnClass: "footer-cl-2",
     title: "Buy land",
     links: [
-      { label: "Agricultural land", to: "/sidebar-grid" },
-      { label: "NA plots", to: "/sidebar-list" },
-      { label: "Farm houses", to: "/topmap-grid" },
-      { label: "Listings on map", to: "/topmap-list" },
+      { label: "Agricultural land", to: "/properties?propertyType=land" },
+      { label: "NA plots", to: "/properties?propertyType=plot" },
+      { label: "All listings", to: "/properties" },
+      { label: "Listings on map", to: "/properties?view=map" },
     ],
   },
   {

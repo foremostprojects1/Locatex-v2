@@ -19,7 +19,8 @@
     "seed:reference": "tsx scripts/seed-reference.ts",
     "create:admin": "tsx scripts/create-admin.ts",
     "migrate:v1": "tsx scripts/migrate-v1.ts",
-    "db:check": "tsx scripts/check-db.ts"
+    "db:check": "tsx scripts/check-db.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@locatex/contracts": "workspace:*",

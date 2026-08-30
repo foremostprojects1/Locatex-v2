@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import MainNav from "./MainNav";
 import MobileMenu from "./MobileMenu";
 import { ACCOUNT_MENU } from "../../constants/navigation";
@@ -65,6 +65,17 @@ export default function Header({
   const isDashboard = variant === "dashboard";
   const { user, signOut } = useSession();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+
+  // The dashboard guard sends people here with ?signin=1 when they tried to reach a page
+  // that needs an account. Opening the dialog for them beats making them find the button.
+  useEffect(() => {
+    if (params.get("signin") !== "1" || user) return;
+    import("../modals/modalControl").then(({ openModal }) => openModal("modalLogin"));
+    const next = new URLSearchParams(params);
+    next.delete("signin");
+    setParams(next, { replace: true });
+  }, [params, user, setParams]);
   const hasFixedBehaviour = variant === "fixed" || variant === "style-2";
 
   useEffect(() => {

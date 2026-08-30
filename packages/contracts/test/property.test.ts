@@ -11,11 +11,11 @@ import {
 import { coarsenPoint } from '../src/location.js';
 
 describe('the listing lifecycle', () => {
-  it('lets a broker take a draft all the way to sold', () => {
+  it('lets a broker take a draft all the way to rented', () => {
     const path: Array<[PropertyStatus, string, PropertyStatus]> = [
       ['draft', 'submit', 'pending'],
       ['pending', 'approve', 'approved'],
-      ['approved', 'mark-sold', 'sold'],
+      ['approved', 'mark-rented', 'rented'],
     ];
 
     for (const [from, action, to] of path) {
@@ -72,7 +72,7 @@ describe('listing input', () => {
   const valid = {
     title: 'Fertile farmland near Morbi',
     propertyType: 'land',
-    listingType: 'sale',
+    listingType: 'rent',
     pricePaise: 72_00_000_00,
     area: { value: 4, unit: 'vigha' },
     location: {

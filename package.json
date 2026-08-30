@@ -25,7 +25,8 @@
     "worker:start": "pnpm --filter @locatex/api worker:start",
     "migrate:status": "pnpm --filter @locatex/api migrate:status",
     "migrate:v1": "pnpm --filter @locatex/api migrate:v1",
-    "db:check": "pnpm --filter @locatex/api db:check"
+    "db:check": "pnpm --filter @locatex/api db:check",
+    "seed:demo": "pnpm --filter @locatex/api seed:demo"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

@@ -1,33 +1,32 @@
-/** Main menu — LocateX information architecture over the existing template routes. */
+import { CONTACT } from "../content/company";
+
+/**
+ * The menu.
+ *
+ * Every entry points at a page that exists and is backed by the API. The template's demo
+ * variants have been removed rather than left in the navigation as reference — a menu that
+ * leads somewhere with invented data is worse than one item shorter.
+ *
+ * Scope for this release is rental listings of land and plots in Gujarat, so the filters
+ * offered here are the ones that actually narrow that: what kind of parcel, and where.
+ */
 export const MAIN_MENU = [
   {
-    label: "Buy land",
+    label: "Find land",
     className: "home",
     children: [
-      // These point at the real, API-backed pages. The template's demo variants
-      // (/sidebar-grid, /topmap-grid and the rest) still exist and still render their
-      // sample data — they are reference material, not part of the product.
       { label: "All listings", to: "/properties" },
-      { label: "Listings on map", to: "/properties?view=map" },
+      { label: "On the map", to: "/properties?view=map" },
       { label: "Agricultural land", to: "/properties?propertyType=land" },
       { label: "NA plots", to: "/properties?propertyType=plot" },
-      { label: "Houses", to: "/properties?propertyType=house" },
     ],
   },
   {
-    label: "Sell land",
+    label: "List your land",
     children: [
-      { label: "Post your land — free", to: "/add-property" },
+      { label: "Post a listing — free", to: "/add-property" },
       { label: "My listings", to: "/my-property" },
-      { label: "How it works", to: "/our-service" },
-    ],
-  },
-  {
-    label: "Tools",
-    children: [
-      { label: "Area converter", to: "/#tools" },
-      { label: "EMI calculator", to: "/#tools" },
-      { label: "Pricing", to: "/pricing" },
+      { label: "Become a broker", to: "/my-property" },
     ],
   },
   {
@@ -40,7 +39,7 @@ export const MAIN_MENU = [
     ],
   },
   {
-    label: "Account",
+    label: "My account",
     children: [
       { label: "Dashboard", to: "/dashboard" },
       { label: "My listings", to: "/my-property" },
@@ -52,18 +51,24 @@ export const MAIN_MENU = [
   },
 ];
 
+/** The dropdown under the avatar. Short on purpose — the dashboard carries the rest. */
 export const ACCOUNT_MENU = [
-  { label: "My Properties", to: "/my-favorites" },
-  { label: "Message", to: "/message" },
-  { label: "My Favorites", to: "/my-favorites" },
-  { label: "Reviews", to: "/reviews" },
-  { label: "My Profile", to: "/my-profile" },
-  { label: "Add Property", to: "/add-property" },
-  { label: "Logout", to: "/" },
+  { label: "Dashboard", to: "/dashboard" },
+  { label: "My listings", to: "/my-property" },
+  { label: "Saved land", to: "/my-favorites" },
+  { label: "Messages", to: "/message" },
+  { label: "My profile", to: "/my-profile" },
 ];
 
+/**
+ * The address in the footer and the mobile drawer.
+ *
+ * Derived from `content/company.js` rather than typed again — the contact details appear in
+ * five places, and the one thing worse than an out-of-date address is two different
+ * out-of-date addresses.
+ */
 export const CONTACT_INFO = {
-  phone: "+91 999 823 6623",
-  email: "support@locatex.in",
-  address: "Morbi, Gujarat, India",
+  address: CONTACT.address.join(", "),
+  phone: CONTACT.phone,
+  email: CONTACT.email,
 };

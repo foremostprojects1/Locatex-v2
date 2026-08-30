@@ -12,7 +12,7 @@ const full = {
   title: 'Fertile farmland near Morbi',
   description: 'Level land on the Sanala road.',
   propertyType: 'land',
-  listingType: 'sale',
+  listingType: 'rent',
   pricePaise: 72_00_000_00,
   priceUnit: 'total',
   area: { value: 4, unit: 'vigha' },
@@ -78,7 +78,7 @@ describe('a half-finished draft', () => {
   });
 
   it('tracks which steps are done, so the rail is never a guess', () => {
-    const partial = { title: full.title, propertyType: 'land', listingType: 'sale' };
+    const partial = { title: full.title, propertyType: 'land', listingType: 'rent' };
     const progress = completedSteps(partial);
 
     expect(progress.basics).toBe(true);

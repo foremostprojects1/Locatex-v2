@@ -50,7 +50,7 @@ async function actor(role: 'buyer' | 'broker' | 'admin') {
 const listing = (overrides: Record<string, unknown> = {}) => ({
   title: 'Fertile farmland with borewell near Morbi',
   propertyType: 'land',
-  listingType: 'sale',
+  listingType: 'rent',
   pricePaise: 72_00_000_00,
   area: { value: 4, unit: 'vigha' },
   location: {

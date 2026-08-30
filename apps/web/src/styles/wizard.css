@@ -1646,3 +1646,179 @@ textarea:focus-visible,
 /* Severity in form as well as colour, so it reads at a glance. */
 .lx-quota__fill.is-warn { background: #d97706; }
 .lx-quota__fill.is-full { background: #dc2626; }
+
+/* ---------------------------------------------------------------------------
+ * Company pages — about, FAQ, terms, contact.
+ * ------------------------------------------------------------------------- */
+
+.lx-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 56px 20px 80px;
+}
+
+/* Running text wants a narrower measure than a page of cards. */
+.lx-page--prose { max-width: 760px; }
+
+.lx-page__head { margin-bottom: 40px; }
+
+.lx-page__head h1 {
+  margin: 0 0 12px;
+  font-size: clamp(30px, 4.5vw, 42px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.lx-page__lede {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+  opacity: 0.8;
+}
+
+.lx-page__section { margin-bottom: 40px; }
+
+.lx-page__section h2 {
+  margin: 0 0 14px;
+  font-size: 21px;
+}
+
+.lx-page__section p {
+  max-width: 68ch;
+  margin: 0 0 12px;
+  line-height: 1.7;
+}
+
+.lx-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.lx-promises {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.lx-promise {
+  padding: 20px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+}
+
+.lx-promise h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.lx-promise p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+.lx-address {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-style: normal;
+  line-height: 1.6;
+}
+
+.lx-contact {
+  display: grid;
+  gap: 40px;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.lx-contact__details {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.lx-contact__details h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+}
+
+.lx-contact__link {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.lx-hours {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lx-hours > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 280px;
+}
+
+.lx-hours dt { opacity: 0.75; }
+
+.lx-hours dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The FAQ accordion. */
+.lx-faq {
+  border-top: 1px solid var(--line, #e5e7eb);
+}
+
+.lx-faq__item {
+  border-bottom: 1px solid var(--line, #e5e7eb);
+}
+
+.lx-faq__item h3 { margin: 0; }
+
+.lx-faq__item button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.lx-faq__mark {
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+.lx-faq__item p {
+  max-width: 66ch;
+  margin: 0 0 20px;
+  line-height: 1.7;
+  opacity: 0.85;
+}
+
+@media (max-width: 860px) {
+  .lx-contact { grid-template-columns: 1fr; }
+}

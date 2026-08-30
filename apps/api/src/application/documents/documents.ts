@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import {
   MAX_DOCUMENTS_PER_PROPERTY,
+  MAX_IMAGES_PER_PROPERTY,
+  PAPERWORK_CATEGORIES,
   confirmUploadSchema,
   readQuota,
   requestUploadSchema,
@@ -70,15 +72,26 @@ export async function requestUpload(
 
   await assertRoomInStorage(storage);
 
+  // Photographs and paperwork have separate allowances. Sharing one would mean a broker
+  // choosing between showing the land and proving the title.
+  const isPhoto = data.category === 'photo';
+  const limit = isPhoto ? MAX_IMAGES_PER_PROPERTY : MAX_DOCUMENTS_PER_PROPERTY;
+
   const live = await PropertyDocumentModel.countDocuments({
     propertyId,
+    category: isPhoto
+      ? 'photo'
+      : mongoose.trusted({ $in: [...PAPERWORK_CATEGORIES] }),
     status: mongoose.trusted({ $ne: 'deleted' }),
     deletedAt: null,
   });
-  if (live >= MAX_DOCUMENTS_PER_PROPERTY) {
+
+  if (live >= limit) {
     throw new AppError(
       'CONFLICT',
-      `A listing can carry ${MAX_DOCUMENTS_PER_PROPERTY} documents. Remove one first.`,
+      isPhoto
+        ? `A listing can carry ${limit} photographs. Remove one first.`
+        : `A listing can carry ${limit} documents. Remove one first.`,
     );
   }
 
@@ -254,6 +267,7 @@ export async function listDocuments(propertyId: string, includeSuperseded = fals
     propertyId,
     status: 'uploaded',
     deletedAt: null,
+    category: mongoose.trusted({ $in: [...PAPERWORK_CATEGORIES] }),
   };
   if (!includeSuperseded) filter.supersededBy = null;
 
@@ -435,4 +449,60 @@ export async function sweepAbandonedUploads(
 
   if (stale.length > 0) logger.info({ count: stale.length }, 'swept abandoned uploads');
   return stale.length;
+}
+
+
+/**
+ * The photographs on a listing, in upload order.
+ *
+ * Separate from `listDocuments` because these are the one kind of upload that is public:
+ * a buyer who has not signed in still sees them, so they cannot go through the authorised
+ * document viewer.
+ */
+export async function listPhotos(propertyId: string) {
+  const rows = await PropertyDocumentModel.find({
+    propertyId,
+    category: 'photo',
+    status: 'uploaded',
+    deletedAt: null,
+  })
+    .sort({ _id: 1 })
+    .lean();
+
+  return rows.map((row) => ({
+    id: String(row._id),
+    url: `/api/v1/images/${String(row._id)}`,
+    fileName: row.fileName,
+    sizeBytes: row.sizeBytes,
+  }));
+}
+
+/**
+ * Streams a listing photograph to anyone.
+ *
+ * The check is on the *listing*, not the viewer: a photograph attached to an approved
+ * listing is public, and one attached to a draft is not — otherwise a listing could be
+ * previewed by anyone who guessed an id before its broker had submitted it.
+ */
+export async function openPhoto(documentId: string, storage: DocumentStorage) {
+  const document = await PropertyDocumentModel.findOne({
+    _id: documentId,
+    category: 'photo',
+    status: 'uploaded',
+    deletedAt: null,
+  }).lean();
+
+  if (!document?.externalId) throw AppError.notFound('Photograph');
+
+  const property = await PropertyModel.findOne({ _id: document.propertyId, deletedAt: null })
+    .select('status')
+    .lean();
+
+  const visible = ['approved', 'sold', 'rented'].includes(String(property?.status));
+  if (!visible) throw AppError.notFound('Photograph');
+
+  const stream = await storage.download(document.externalId);
+  if (!stream) throw AppError.notFound('Photograph');
+
+  return { stream, mimeType: document.mimeType, fileName: document.fileName };
 }

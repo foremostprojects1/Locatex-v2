@@ -97,6 +97,29 @@ export default function MapPicker({
     else mapRef.current.dragging.enable();
   }, [disabled]);
 
+
+  // Leaflet measures its container once, at construction. If the map is created while that
+  // container has not been laid out yet — a tab that was just switched to, a panel that
+  // was collapsed, a font still loading — it computes a size of zero and draws nothing but
+  // grey. Watching the element and telling Leaflet to re-measure is the standard remedy,
+  // and it also handles the browser window being resized.
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return undefined;
+
+    const settle = () => mapRef.current?.invalidateSize();
+    // Once after the first paint, for the common case of mounting into a fresh container.
+    const raf = requestAnimationFrame(settle);
+
+    const observer = new ResizeObserver(settle);
+    observer.observe(element);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <div className="lx-map-picker">
       <div ref={containerRef} className="lx-map-picker__canvas" />

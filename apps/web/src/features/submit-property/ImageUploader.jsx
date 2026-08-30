@@ -1,114 +1,122 @@
-import { useRef, useState } from "react";
-import { post } from "../../services/locatexApi";
-
-const MAX_BYTES = 10 * 1024 * 1024;
-const MAX_IMAGES = 20;
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ALLOWED_IMAGE_TYPES,
+  MAX_IMAGES_PER_PROPERTY,
+  MAX_IMAGE_BYTES,
+  formatBytes,
+} from "@locatex/contracts";
+import { del, get, post } from "../../services/locatexApi";
 
 /**
  * Photographs for a listing.
  *
- * The file goes straight from the phone to Cloudinary — our server only signs the request.
- * A broker standing in a field uploading eight photographs never occupies a connection to
- * our process, and a 4 MB photo does not travel twice.
+ * These go to the same Google Drive as the paperwork — one place for everything, which is
+ * what the client asked for. The file travels from the phone straight to Drive; our server
+ * issues the session and afterwards checks that what landed matches what was sent.
  *
- * The URL we keep back carries transformation instructions rather than pointing at the
- * original, so a buyer on mobile data downloads roughly 120 KB instead of 4 MB. That is the
- * difference between a listing page that loads and one people give up on.
+ * The photographs a buyer sees are proxied back through the API, because Drive has no
+ * public address we could hand out that would not also be guessable.
  */
-export default function ImageUploader({ images, onChange, propertyId }) {
-  const [uploading, setUploading] = useState(0);
+export default function ImageUploader({ propertyId, onChange }) {
+  const [photos, setPhotos] = useState([]);
+  const [busy, setBusy] = useState(0);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
 
-  const room = MAX_IMAGES - images.length;
+  const load = useCallback(async () => {
+    if (!propertyId) return;
+    try {
+      const response = await get(`/properties/${propertyId}/photos`);
+      setPhotos(response.data);
+      onChange?.(response.data.map((photo, index) => ({
+        url: photo.url,
+        alt: "",
+        isPrimary: index === 0,
+      })));
+    } catch (cause) {
+      setError(cause);
+    }
+    // Keyed on the listing alone. `onChange` is rebuilt on every render by the wizard,
+    // so depending on it here would reload the photographs in a loop.
+  }, [propertyId]);
 
-  const pick = async (files) => {
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (!propertyId) {
+    return (
+      <p className="lx-note">
+        Finish the listing first — it will be saved as a draft, and you can add photographs
+        to it straight afterwards.
+      </p>
+    );
+  }
+
+  const room = MAX_IMAGES_PER_PROPERTY - photos.length;
+
+  const upload = async (files) => {
     setError(null);
     const chosen = Array.from(files).slice(0, room);
     if (chosen.length === 0) return;
 
-    const tooBig = chosen.find((file) => file.size > MAX_BYTES);
+    const tooBig = chosen.find((file) => file.size > MAX_IMAGE_BYTES);
     if (tooBig) {
-      setError(`“${tooBig.name}” is larger than 10 MB. Photographs from a phone are usually well under.`);
+      setError(new Error(`“${tooBig.name}” is over ${formatBytes(MAX_IMAGE_BYTES)}.`));
       return;
     }
 
-    setUploading(chosen.length);
+    setBusy(chosen.length);
     try {
-      // One signature covers this batch — it is valid for about an hour.
-      const { data: signature } = await post("/documents/images/signature", { propertyId });
-
-      const uploaded = [];
       for (const file of chosen) {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("api_key", signature.apiKey);
-        form.append("timestamp", String(signature.timestamp));
-        form.append("signature", signature.signature);
-        form.append("folder", signature.folder);
-
-        const response = await fetch(signature.uploadUrl, { method: "POST", body: form });
-        if (!response.ok) {
-          throw new Error("Cloudinary refused that upload. Please try again.");
-        }
-
-        const result = await response.json();
-        uploaded.push({
-          // Sized on delivery rather than stored at full resolution.
-          url: `https://res.cloudinary.com/${signature.cloudName}/image/upload/f_auto,q_auto,w_1600,c_limit/${result.public_id}`,
-          alt: "",
-          isPrimary: images.length === 0 && uploaded.length === 0,
+        const session = await post(`/properties/${propertyId}/documents/upload-session`, {
+          category: "photo",
+          fileName: file.name,
+          mimeType: file.type,
+          sizeBytes: file.size,
         });
-        setUploading((count) => count - 1);
-      }
 
-      onChange([...images, ...uploaded]);
+        const sent = await fetch(session.data.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!sent.ok) throw new Error("That upload did not go through. Please try again.");
+
+        await post(`/documents/${session.data.documentId}/confirm`, {
+          checksum: await sha256(file),
+          sizeBytes: file.size,
+        });
+        setBusy((count) => count - 1);
+      }
+      await load();
     } catch (cause) {
-      setError(cause.message);
+      setError(cause);
     } finally {
-      setUploading(0);
+      setBusy(0);
       if (inputRef.current) inputRef.current.value = "";
     }
   };
 
-  const remove = (index) =>
-    onChange(
-      images
-        .filter((_, position) => position !== index)
-        // If the primary was removed, the first remaining photograph becomes it — a
-        // listing with no primary renders a blank card.
-        .map((image, position) => ({ ...image, isPrimary: position === 0 })),
-    );
-
-  const makePrimary = (index) =>
-    onChange(images.map((image, position) => ({ ...image, isPrimary: position === index })));
+  const remove = async (id) => {
+    await del(`/documents/${id}`);
+    await load();
+  };
 
   return (
     <div className="lx-images">
-      {error ? <p className="lx-field__error">{error}</p> : null}
+      {error ? <p className="lx-field__error">{error.message}</p> : null}
 
       <div className="lx-images__grid">
-        {images.map((image, index) => (
-          <figure key={`${image.url}-${index}`} className="lx-images__item">
-            <img src={image.url} alt={image.alt || "Listing photograph"} loading="lazy" />
-
-            {image.isPrimary ? (
-              <span className="lx-images__badge">Main photo</span>
-            ) : (
-              <button
-                type="button"
-                className="lx-images__make-primary"
-                onClick={() => makePrimary(index)}
-              >
-                Make main
-              </button>
-            )}
-
+        {photos.map((photo, index) => (
+          <figure key={photo.id} className="lx-images__item">
+            <img src={photo.url} alt={`Listing photograph ${index + 1}`} loading="lazy" />
+            {index === 0 ? <span className="lx-images__badge">Main photo</span> : null}
             <button
               type="button"
               className="lx-images__remove"
               aria-label={`Remove photograph ${index + 1}`}
-              onClick={() => remove(index)}
+              onClick={() => remove(photo.id)}
             >
               ×
             </button>
@@ -120,18 +128,14 @@ export default function ImageUploader({ images, onChange, propertyId }) {
             <input
               ref={inputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept={ALLOWED_IMAGE_TYPES.join(",")}
               multiple
               hidden
-              disabled={uploading > 0}
-              onChange={(event) => pick(event.target.files ?? [])}
+              disabled={busy > 0}
+              onChange={(event) => upload(event.target.files ?? [])}
             />
             <span>
-              {uploading > 0
-                ? `Uploading ${uploading}…`
-                : images.length === 0
-                  ? "Add photographs"
-                  : "Add more"}
+              {busy > 0 ? `Uploading ${busy}…` : photos.length === 0 ? "Add photographs" : "Add more"}
             </span>
             <small>{room} left</small>
           </label>
@@ -139,10 +143,26 @@ export default function ImageUploader({ images, onChange, propertyId }) {
       </div>
 
       <p className="lx-note">
-        The first photograph is what buyers see in search results. Wide shots of the land
-        itself do better than close-ups — and a listing with no photograph is one nobody
-        opens.
+        The first photograph is what buyers see in search results. Wide shots of the land do
+        better than close-ups — and a listing with no photograph is one nobody opens.
       </p>
     </div>
   );
+}
+
+/**
+ * The checksum the server compares against what actually reached Drive.
+ *
+ * `crypto.subtle` needs a secure context — every real deployment and localhost, but not a
+ * plain-HTTP staging box. Where it is missing the upload is refused rather than confirmed
+ * unverified, because an unverified upload is exactly what this flow exists to catch.
+ */
+async function sha256(file) {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error("This browser cannot verify the upload. Please use HTTPS.");
+  }
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }

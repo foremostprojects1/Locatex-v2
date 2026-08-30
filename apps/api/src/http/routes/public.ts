@@ -2,6 +2,9 @@ import { Router, type Router as ExpressRouter } from 'express';
 import rateLimit from 'express-rate-limit';
 import { receiveContactMessage } from '../../application/admin/contact.js';
 import { liveNews } from '../../application/admin/news.js';
+import { openPhoto } from '../../application/documents/documents.js';
+import { documentStorage } from '../../container.js';
+import { pipeline } from 'node:stream/promises';
 import { z } from 'zod';
 import { completeDriveConnection } from '../../application/documents/connectDrive.js';
 import { principalOf } from '../middleware/authenticate.js';
@@ -104,5 +107,29 @@ publicRouter.get('/storage/callback', async (req, res) => {
     res.redirect(
       `${env().APP_BASE_URL}/admin?storage=failed&reason=${encodeURIComponent(message)}`,
     );
+  }
+});
+
+/**
+ * A listing photograph, for anybody.
+ *
+ * Everything now goes to Google Drive (the client's decision), and Drive has no public URL
+ * we could hand out that would not also be guessable by anyone. So the bytes are proxied,
+ * and the authorisation is on the *listing*: an approved listing's photographs are public,
+ * a draft's are not.
+ *
+ * Cached hard. A photograph never changes — a replacement is a new upload with a new id —
+ * so a year is safe, and it is what keeps this endpoint from putting Drive's per-file
+ * download limits in front of every visitor.
+ */
+publicRouter.get('/images/:id', async (req, res, next) => {
+  try {
+    const { stream, mimeType } = await openPhoto(String(req.params.id), documentStorage());
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    await pipeline(stream, res);
+  } catch (error) {
+    next(error);
   }
 });

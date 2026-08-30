@@ -21,7 +21,6 @@ export default function StepFeatures({ data, setField, propertyId }) {
     );
   };
 
-  const images = data.images ?? [];
 
   return (
     <>
@@ -51,7 +50,6 @@ export default function StepFeatures({ data, setField, propertyId }) {
 
       <h6 className="lx-section-title">Photographs</h6>
       <ImageUploader
-        images={images}
         propertyId={propertyId}
         onChange={(next) => setField("images", next)}
       />

@@ -54,7 +54,7 @@ const steps = {
     title: 'Fertile farmland with borewell near Morbi',
     description: 'Level land on the Sanala road.',
     propertyType: 'land',
-    listingType: 'sale',
+    listingType: 'rent',
   },
   location: {
     location: {

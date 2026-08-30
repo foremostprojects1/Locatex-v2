@@ -69,7 +69,7 @@ const listing = (overrides: Record<string, unknown> = {}) => ({
   title: 'Fertile farmland with borewell near Morbi',
   description: 'Level land on the Sanala road, suitable for cotton.',
   propertyType: 'land',
-  listingType: 'sale',
+  listingType: 'rent',
   pricePaise: 72_00_000_00,
   priceUnit: 'total',
   area: { value: 4, unit: 'vigha' },
@@ -84,7 +84,7 @@ const listing = (overrides: Record<string, unknown> = {}) => ({
   amenities: ['fencing', 'electricity'],
   disadvantages: [],
   contact: { name: 'Ramesh Patel', email: 'ramesh@example.com', phone: '9876543210' },
-  images: [{ url: 'https://cdn.example.com/a.jpg', alt: 'the plot' }],
+  images: [{ url: '/api/v1/images/01JBXYZPHOTO0000000000', alt: 'the plot' }],
   ...overrides,
 });
 
@@ -289,16 +289,15 @@ describe('the approval flow', () => {
     expect(resubmitted.body.data.rejectionReason).toBeNull();
   });
 
-  it('refuses to call a sale listing rented', async () => {
+  it('refuses to call a rental listing sold', async () => {
     const broker = await actor('broker');
     const admin = await actor('admin');
     const id = await publish(broker, admin);
 
-    await broker
-      .post(`/api/v1/properties/${id}/status`)
-      .send({ action: 'mark-rented' })
-      .expect(409);
-    await broker.post(`/api/v1/properties/${id}/status`).send({ action: 'mark-sold' }).expect(200);
+    // Every listing is a rental in this release, so `sold` is unreachable — and the guard
+    // says so rather than quietly moving the listing into a state nothing can leave.
+    await broker.post(`/api/v1/properties/${id}/status`).send({ action: 'mark-sold' }).expect(409);
+    await broker.post(`/api/v1/properties/${id}/status`).send({ action: 'mark-rented' }).expect(200);
   });
 
   it('records every move, and who made it', async () => {

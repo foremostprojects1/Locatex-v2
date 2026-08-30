@@ -9,18 +9,26 @@ import { emailSchema, phoneSchema } from './auth.js';
  * two can never disagree about a valid price, a legal transition, or who may make it.
  */
 
-export const PROPERTY_TYPES = [
-  'land',
-  'plot',
-  'house',
-  'apartment',
-  'commercial',
-  'industrial',
-] as const;
+/**
+ * What LocateX carries.
+ *
+ * Land and plots only. The client's scope for this release is agricultural and
+ * non-agricultural parcels — houses, flats and commercial buildings are a different
+ * market with different paperwork, different search filters and different buyers, and
+ * putting them behind the same form would serve neither well.
+ */
+export const PROPERTY_TYPES = ['land', 'plot'] as const;
 export const propertyTypeSchema = z.enum(PROPERTY_TYPES);
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 
-export const LISTING_TYPES = ['sale', 'rent'] as const;
+/**
+ * Rental only, for now.
+ *
+ * The status machine still knows about `sold`, because a listing that has been sold is a
+ * real state a future release will need and removing it would mean a migration to put it
+ * back. Nothing can reach it while every listing is a rental.
+ */
+export const LISTING_TYPES = ['rent'] as const;
 export const listingTypeSchema = z.enum(LISTING_TYPES);
 export type ListingType = z.infer<typeof listingTypeSchema>;
 
@@ -232,9 +240,19 @@ export const propertyContactSchema = z
   })
   .strict();
 
+/**
+ * A photograph on a listing.
+ *
+ * `url` is a path served by this API, not an absolute address: every image lives in the
+ * owner's Google Drive and is proxied, so there is no external host to point at and
+ * nothing a broker could paste that would bypass the upload.
+ */
 export const propertyImageSchema = z
   .object({
-    url: z.string().url().max(500),
+    url: z
+      .string()
+      .max(200)
+      .regex(/^\/api\/v1\/images\/[A-Za-z0-9]+$/, 'Upload the photograph rather than linking to one'),
     alt: z.string().trim().max(120).default(''),
     isPrimary: z.boolean().default(false),
   })
@@ -248,7 +266,7 @@ export const createPropertySchema = z
     title: z.string().trim().min(8, 'Give the listing a descriptive title').max(100),
     description: z.string().trim().max(2000).optional(),
     propertyType: propertyTypeSchema,
-    listingType: listingTypeSchema,
+    listingType: listingTypeSchema.default('rent'),
     insertedBy: insertedBySchema.default('broker'),
 
     pricePaise: z.number().int().positive('Enter the asking price').max(MAX_PRICE_PAISE),
