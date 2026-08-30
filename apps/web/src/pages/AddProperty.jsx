@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import SubmitWizard from "../features/submit-property/SubmitWizard";
 import { useSession } from "../hooks/useSession";
+import BecomeBrokerForm from "../features/broker/BecomeBrokerForm";
+import StepDocuments from "../features/submit-property/steps/StepDocuments";
 
 /**
  * The page a broker lists land from.
@@ -34,20 +36,9 @@ export default function AddProperty() {
     );
   }
 
-  if (!isBroker) {
-    return (
-      <div className="widget-box-2 mb-20">
-        <h5 className="title">Brokers list the land</h5>
-        <p className="lx-note">
-          Your account is registered as a buyer. Apply to become a broker from your dashboard,
-          and once our team has verified you, this page is where you will post listings.
-        </p>
-        <Link className="tf-btn bg-color-primary pd-10" to="/dashboard">
-          Go to my dashboard
-        </Link>
-      </div>
-    );
-  }
+  // Not a dead end: the application is right here, because this is the page somebody
+  // reaches when they have decided to list land.
+  if (!isBroker) return <BecomeBrokerForm />;
 
   if (created) {
     return (
@@ -57,6 +48,11 @@ export default function AddProperty() {
           “{created.title}” is saved. It is not public yet — submit it for review from your
           listings, and our team will approve it, usually within a working day.
         </p>
+        <div className="lx-wizard__documents">
+          <h6 className="lx-section-title">Add the papers</h6>
+          <StepDocuments propertyId={created.id} />
+        </div>
+
         <div className="lx-wizard__actions">
           <Link className="tf-btn bg-color-primary pd-10" to="/my-property">
             My listings

@@ -34,6 +34,10 @@ export function toSessionUser(user: UserDoc): SessionUser {
     emailVerified: Boolean(user.emailVerifiedAt),
     phoneVerified: Boolean(user.phoneVerifiedAt),
     avatarUrl: user.avatarUrl ?? null,
+    // The profile form needs the current values to show them; without these it would
+    // render empty selects and silently clear a preference on the first save.
+    preferredDistrict: user.buyerProfile?.preferredDistrict ?? null,
+    budgetBand: user.buyerProfile?.budgetBand ?? null,
     brokerApplicationStatus: user.brokerApplication?.status ?? (user.role === 'broker' ? 'approved' : 'none'),
   };
 }

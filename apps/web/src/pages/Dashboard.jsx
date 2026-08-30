@@ -1,997 +1,193 @@
-import DashboardChart from "../components/common/DashboardChart";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import NiceSelect from "../components/common/NiceSelect";
+import { formatIndianShort } from "@locatex/contracts";
+import { get } from "../services/locatexApi";
+import { useSession } from "../hooks/useSession";
+import BecomeBrokerForm from "../features/broker/BecomeBrokerForm";
 
+/**
+ * Where everyone lands after signing in.
+ *
+ * Different people need different things here, so the page asks who is looking rather than
+ * showing one layout to all three. A buyer wants their saved land and their enquiries; a
+ * broker wants to know what is waiting on them; an administrator wants the review queue.
+ *
+ * It deliberately shows counts and the next action, not charts. Nobody signs in to look at
+ * a graph of their own listings — they sign in to answer a message or send a listing for
+ * review.
+ */
 export default function Dashboard() {
+  const { user, loading, isBroker, isAdmin } = useSession();
+  const [summary, setSummary] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Everything this page needs, gathered in parallel and tolerant of any one failing —
+    // a dashboard that goes blank because one count errored is worse than a missing count.
+    Promise.allSettled([
+      get("/me/favourites?limit=1"),
+      get("/me/enquiries"),
+      get("/chat/unread"),
+      isBroker ? get("/properties/mine") : Promise.resolve(null),
+      isAdmin ? get("/admin/stats") : Promise.resolve(null),
+    ]).then(([favourites, enquiries, unread, mine, stats]) => {
+      const value = (result) => (result.status === "fulfilled" ? result.value : null);
+      const listings = value(mine)?.data ?? [];
+
+      setSummary({
+        favourites: value(favourites)?.total ?? 0,
+        enquiries: value(enquiries)?.data?.length ?? 0,
+        unread: value(unread)?.unread ?? 0,
+        listings,
+        drafts: listings.filter((row) => row.status === "draft").length,
+        pending: listings.filter((row) => row.status === "pending").length,
+        live: listings.filter((row) => row.status === "approved").length,
+        stats: value(stats)?.data ?? null,
+      });
+    });
+  }, [user, isBroker, isAdmin]);
+
+  if (loading) return <div className="widget-box-2 mb-20">One moment…</div>;
+
+  if (!user) {
+    return (
+      <div className="widget-box-2 mb-20">
+        <h5 className="title">Sign in to see your dashboard</h5>
+        <a href="#modalLogin" data-bs-toggle="modal" className="tf-btn bg-color-primary pd-10">
+          Sign in
+        </a>
+      </div>
+    );
+  }
+
+  const firstName = user.fullName?.split(" ")[0] ?? "there";
+
   return (
     <>
-      {" "}
-      <div className="flat-counter-v2 tf-counter">
-        {" "}
-        <div className="counter-box">
-          {" "}
-          <div className="box-icon">
-            {" "}
-            <span className="icon icon-listing"></span>{" "}
-          </div>{" "}
-          <div className="content-box">
-            {" "}
-            <div className="title-count text-variant-1">Your listing</div>{" "}
-            <div className="box-count d-flex align-items-end">
-              {" "}
-              <h3 className="fw-8">32</h3>{" "}
-              <span className="text">/50 remaining</span>{" "}
-            </div>{" "}
-          </div>{" "}
-        </div>{" "}
-        <div className="counter-box">
-          {" "}
-          <div className="box-icon">
-            {" "}
-            <span className="icon icon-pending"></span>{" "}
-          </div>{" "}
-          <div className="content-box">
-            {" "}
-            <div className="title-count text-variant-1">Pending</div>{" "}
-            <div className="box-count d-flex align-items-end">
-              {" "}
-              <h3 className="fw-8">02</h3>{" "}
-            </div>{" "}
-          </div>{" "}
-        </div>{" "}
-        <div className="counter-box">
-          {" "}
-          <div className="box-icon">
-            {" "}
-            <span className="icon icon-favorite"></span>{" "}
-          </div>{" "}
-          <div className="content-box">
-            {" "}
-            <div className="title-count text-variant-1">Favorites</div>{" "}
-            <div className="d-flex align-items-end">
-              {" "}
-              <h3 className="fw-8">06</h3>{" "}
-            </div>{" "}
-          </div>{" "}
-        </div>{" "}
-        <div className="counter-box">
-          {" "}
-          <div className="box-icon">
-            {" "}
-            <span className="icon icon-review"></span>{" "}
-          </div>{" "}
-          <div className="content-box">
-            {" "}
-            <div className="title-count text-variant-1">Reviews</div>{" "}
-            <div className="d-flex align-items-end">
-              {" "}
-              <h3 className="fw-8">1.483</h3>{" "}
-            </div>{" "}
-          </div>{" "}
-        </div>{" "}
-      </div>{" "}
-      <div className="wrapper-content row">
-        {" "}
-        <div className="col-xl-9">
-          {" "}
-          <div className="widget-box-2 wd-listing">
-            {" "}
-            <h5 className="title">New Listing</h5>{" "}
-            <div className="wd-filter">
-              {" "}
-              <div className="ip-group icon-left">
-                {" "}
-                <input type="text" placeholder="Search" />{" "}
-                <span className="icon icon-search"></span>{" "}
-              </div>{" "}
-              <div className="ip-group icon">
-                {" "}
-                <input
-                  type="date"
-                  id="datepicker1"
-                  className="ip-datepicker icon"
-                  placeholder="From Date"
-                />{" "}
-              </div>{" "}
-              <div className="ip-group icon">
-                {" "}
-                <input
-                  type="date"
-                  id="datepicker2"
-                  className="ip-datepicker icon"
-                  placeholder="To Date"
-                />{" "}
-              </div>{" "}
-              <div className="ip-group">
-                {" "}
-                <NiceSelect
-                  options={[
-                    { value: "1", label: "Select" },
-                    { value: "2", label: "Today" },
-                    { value: "3", label: "Yesterday" },
-                  ]}
-                  defaultValue="1"
-                />{" "}
-              </div>{" "}
-            </div>{" "}
-            <div className="d-flex gap-4">
-              <span className="text-primary fw-7">26</span>
-              <span className="fw-6">Results found</span>
-            </div>{" "}
-            <div className="wrap-table">
-              {" "}
-              <div className="table-responsive">
-                {" "}
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Listing</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="file-delete">
-                      <td>
-                        {" "}
-                        <div className="listing-box">
-                          {" "}
-                          <div className="images">
-                            {" "}
-                            <img
-                              src="/images/home/house-18.jpg"
-                              alt="images"
-                            />{" "}
-                          </div>{" "}
-                          <div className="content">
-                            {" "}
-                            <div className="title">
-                              <Link to="/property-details-v1" className="link">
-                                Gorgeous Apartment Building
-                              </Link>{" "}
-                            </div>{" "}
-                            <div className="text-date">
-                              Posting date: March 22, 2024
-                            </div>{" "}
-                            <div className="text-btn text-primary">
-                              $7,500
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <div className="status-wrap">
-                          {" "}
-                          <a href="#" className="btn-status">
-                            {" "}
-                            Approved
-                          </a>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <ul className="list-action">
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M11.2413 2.9915L12.366 1.86616C12.6005 1.63171 12.9184 1.5 13.25 1.5C13.5816 1.5 13.8995 1.63171 14.134 1.86616C14.3685 2.10062 14.5002 2.4186 14.5002 2.75016C14.5002 3.08173 14.3685 3.39971 14.134 3.63416L4.55467 13.2135C4.20222 13.5657 3.76758 13.8246 3.29 13.9668L1.5 14.5002L2.03333 12.7102C2.17552 12.2326 2.43442 11.7979 2.78667 11.4455L11.242 2.9915H11.2413ZM11.2413 2.9915L13 4.75016"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Edit
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M12.2427 12.2427C13.3679 11.1175 14.0001 9.59135 14.0001 8.00004C14.0001 6.40873 13.3679 4.8826 12.2427 3.75737C11.1175 2.63214 9.59135 2 8.00004 2C6.40873 2 4.8826 2.63214 3.75737 3.75737M12.2427 12.2427C11.1175 13.3679 9.59135 14.0001 8.00004 14.0001C6.40873 14.0001 4.8826 13.3679 3.75737 12.2427C2.63214 11.1175 2 9.59135 2 8.00004C2 6.40873 2.63214 4.8826 3.75737 3.75737M12.2427 12.2427L3.75737 3.75737"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Sold
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="remove-file item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M9.82667 6.00035L9.596 12.0003M6.404 12.0003L6.17333 6.00035M12.8187 3.86035C13.0467 3.89501 13.2733 3.93168 13.5 3.97101M12.8187 3.86035L12.1067 13.1157C12.0776 13.4925 11.9074 13.8445 11.63 14.1012C11.3527 14.3579 10.9886 14.5005 10.6107 14.5003H5.38933C5.0114 14.5005 4.64735 14.3579 4.36999 14.1012C4.09262 13.8445 3.92239 13.4925 3.89333 13.1157L3.18133 3.86035M12.8187 3.86035C12.0492 3.74403 11.2758 3.65574 10.5 3.59568M3.18133 3.86035C2.95333 3.89435 2.72667 3.93101 2.5 3.97035M3.18133 3.86035C3.95076 3.74403 4.72416 3.65575 5.5 3.59568M10.5 3.59568V2.98501C10.5 2.19835 9.89333 1.54235 9.10667 1.51768C8.36908 1.49411 7.63092 1.49411 6.89333 1.51768C6.10667 1.54235 5.5 2.19901 5.5 2.98501V3.59568M10.5 3.59568C8.83581 3.46707 7.16419 3.46707 5.5 3.59568"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Delete
-                            </a>{" "}
-                          </li>
-                        </ul>{" "}
-                      </td>
-                    </tr>
-                    <tr className="file-delete">
-                      <td>
-                        {" "}
-                        <div className="listing-box">
-                          {" "}
-                          <div className="images">
-                            {" "}
-                            <img
-                              src="/images/home/house-33.jpg"
-                              alt="images"
-                            />{" "}
-                          </div>{" "}
-                          <div className="content">
-                            {" "}
-                            <div className="title">
-                              <Link to="/property-details-v1" className="link">
-                                Mountain Mist Retreat, Aspen
-                              </Link>{" "}
-                            </div>{" "}
-                            <div className="text-date">
-                              Posting date: March 22, 2024
-                            </div>{" "}
-                            <div className="text-btn text-primary">
-                              $7,500
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <div className="status-wrap">
-                          {" "}
-                          <a href="#" className="btn-status">
-                            {" "}
-                            Approved
-                          </a>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <ul className="list-action">
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M11.2413 2.9915L12.366 1.86616C12.6005 1.63171 12.9184 1.5 13.25 1.5C13.5816 1.5 13.8995 1.63171 14.134 1.86616C14.3685 2.10062 14.5002 2.4186 14.5002 2.75016C14.5002 3.08173 14.3685 3.39971 14.134 3.63416L4.55467 13.2135C4.20222 13.5657 3.76758 13.8246 3.29 13.9668L1.5 14.5002L2.03333 12.7102C2.17552 12.2326 2.43442 11.7979 2.78667 11.4455L11.242 2.9915H11.2413ZM11.2413 2.9915L13 4.75016"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Edit
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M12.2427 12.2427C13.3679 11.1175 14.0001 9.59135 14.0001 8.00004C14.0001 6.40873 13.3679 4.8826 12.2427 3.75737C11.1175 2.63214 9.59135 2 8.00004 2C6.40873 2 4.8826 2.63214 3.75737 3.75737M12.2427 12.2427C11.1175 13.3679 9.59135 14.0001 8.00004 14.0001C6.40873 14.0001 4.8826 13.3679 3.75737 12.2427C2.63214 11.1175 2 9.59135 2 8.00004C2 6.40873 2.63214 4.8826 3.75737 3.75737M12.2427 12.2427L3.75737 3.75737"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Sold
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="remove-file item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M9.82667 6.00035L9.596 12.0003M6.404 12.0003L6.17333 6.00035M12.8187 3.86035C13.0467 3.89501 13.2733 3.93168 13.5 3.97101M12.8187 3.86035L12.1067 13.1157C12.0776 13.4925 11.9074 13.8445 11.63 14.1012C11.3527 14.3579 10.9886 14.5005 10.6107 14.5003H5.38933C5.0114 14.5005 4.64735 14.3579 4.36999 14.1012C4.09262 13.8445 3.92239 13.4925 3.89333 13.1157L3.18133 3.86035M12.8187 3.86035C12.0492 3.74403 11.2758 3.65574 10.5 3.59568M3.18133 3.86035C2.95333 3.89435 2.72667 3.93101 2.5 3.97035M3.18133 3.86035C3.95076 3.74403 4.72416 3.65575 5.5 3.59568M10.5 3.59568V2.98501C10.5 2.19835 9.89333 1.54235 9.10667 1.51768C8.36908 1.49411 7.63092 1.49411 6.89333 1.51768C6.10667 1.54235 5.5 2.19901 5.5 2.98501V3.59568M10.5 3.59568C8.83581 3.46707 7.16419 3.46707 5.5 3.59568"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Delete
-                            </a>{" "}
-                          </li>
-                        </ul>{" "}
-                      </td>
-                    </tr>
-                    <tr className="file-delete">
-                      <td>
-                        {" "}
-                        <div className="listing-box">
-                          {" "}
-                          <div className="images">
-                            {" "}
-                            <img
-                              src="/images/home/house-15.jpg"
-                              alt="images"
-                            />{" "}
-                          </div>{" "}
-                          <div className="content">
-                            {" "}
-                            <div className="title">
-                              <Link to="/property-details-v1" className="link">
-                                Lakeview Haven, Lake Tahoe
-                              </Link>{" "}
-                            </div>{" "}
-                            <div className="text-date">
-                              Posting date: March 22, 2024
-                            </div>{" "}
-                            <div className="text-btn text-primary">
-                              $7,500
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <div className="status-wrap">
-                          {" "}
-                          <a href="#" className="btn-status pending">
-                            {" "}
-                            Pending
-                          </a>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <ul className="list-action">
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M11.2413 2.9915L12.366 1.86616C12.6005 1.63171 12.9184 1.5 13.25 1.5C13.5816 1.5 13.8995 1.63171 14.134 1.86616C14.3685 2.10062 14.5002 2.4186 14.5002 2.75016C14.5002 3.08173 14.3685 3.39971 14.134 3.63416L4.55467 13.2135C4.20222 13.5657 3.76758 13.8246 3.29 13.9668L1.5 14.5002L2.03333 12.7102C2.17552 12.2326 2.43442 11.7979 2.78667 11.4455L11.242 2.9915H11.2413ZM11.2413 2.9915L13 4.75016"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Edit
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M12.2427 12.2427C13.3679 11.1175 14.0001 9.59135 14.0001 8.00004C14.0001 6.40873 13.3679 4.8826 12.2427 3.75737C11.1175 2.63214 9.59135 2 8.00004 2C6.40873 2 4.8826 2.63214 3.75737 3.75737M12.2427 12.2427C11.1175 13.3679 9.59135 14.0001 8.00004 14.0001C6.40873 14.0001 4.8826 13.3679 3.75737 12.2427C2.63214 11.1175 2 9.59135 2 8.00004C2 6.40873 2.63214 4.8826 3.75737 3.75737M12.2427 12.2427L3.75737 3.75737"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Sold
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="remove-file item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M9.82667 6.00035L9.596 12.0003M6.404 12.0003L6.17333 6.00035M12.8187 3.86035C13.0467 3.89501 13.2733 3.93168 13.5 3.97101M12.8187 3.86035L12.1067 13.1157C12.0776 13.4925 11.9074 13.8445 11.63 14.1012C11.3527 14.3579 10.9886 14.5005 10.6107 14.5003H5.38933C5.0114 14.5005 4.64735 14.3579 4.36999 14.1012C4.09262 13.8445 3.92239 13.4925 3.89333 13.1157L3.18133 3.86035M12.8187 3.86035C12.0492 3.74403 11.2758 3.65574 10.5 3.59568M3.18133 3.86035C2.95333 3.89435 2.72667 3.93101 2.5 3.97035M3.18133 3.86035C3.95076 3.74403 4.72416 3.65575 5.5 3.59568M10.5 3.59568V2.98501C10.5 2.19835 9.89333 1.54235 9.10667 1.51768C8.36908 1.49411 7.63092 1.49411 6.89333 1.51768C6.10667 1.54235 5.5 2.19901 5.5 2.98501V3.59568M10.5 3.59568C8.83581 3.46707 7.16419 3.46707 5.5 3.59568"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Delete
-                            </a>{" "}
-                          </li>
-                        </ul>{" "}
-                      </td>
-                    </tr>
-                    <tr className="file-delete">
-                      <td>
-                        {" "}
-                        <div className="listing-box">
-                          {" "}
-                          <div className="images">
-                            {" "}
-                            <img
-                              src="/images/home/house-23.jpg"
-                              alt="images"
-                            />{" "}
-                          </div>{" "}
-                          <div className="content">
-                            {" "}
-                            <div className="title">
-                              <Link to="/property-details-v1" className="link">
-                                Coastal Serenity Cottage
-                              </Link>{" "}
-                            </div>{" "}
-                            <div className="text-date">
-                              Posting date: March 22, 2024
-                            </div>{" "}
-                            <div className="text-btn text-primary">
-                              $7,500
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <div className="status-wrap">
-                          {" "}
-                          <a href="#" className="btn-status sold">
-                            Sold
-                          </a>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <ul className="list-action">
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M11.2413 2.9915L12.366 1.86616C12.6005 1.63171 12.9184 1.5 13.25 1.5C13.5816 1.5 13.8995 1.63171 14.134 1.86616C14.3685 2.10062 14.5002 2.4186 14.5002 2.75016C14.5002 3.08173 14.3685 3.39971 14.134 3.63416L4.55467 13.2135C4.20222 13.5657 3.76758 13.8246 3.29 13.9668L1.5 14.5002L2.03333 12.7102C2.17552 12.2326 2.43442 11.7979 2.78667 11.4455L11.242 2.9915H11.2413ZM11.2413 2.9915L13 4.75016"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Edit
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M12.2427 12.2427C13.3679 11.1175 14.0001 9.59135 14.0001 8.00004C14.0001 6.40873 13.3679 4.8826 12.2427 3.75737C11.1175 2.63214 9.59135 2 8.00004 2C6.40873 2 4.8826 2.63214 3.75737 3.75737M12.2427 12.2427C11.1175 13.3679 9.59135 14.0001 8.00004 14.0001C6.40873 14.0001 4.8826 13.3679 3.75737 12.2427C2.63214 11.1175 2 9.59135 2 8.00004C2 6.40873 2.63214 4.8826 3.75737 3.75737M12.2427 12.2427L3.75737 3.75737"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Sold
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="remove-file item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M9.82667 6.00035L9.596 12.0003M6.404 12.0003L6.17333 6.00035M12.8187 3.86035C13.0467 3.89501 13.2733 3.93168 13.5 3.97101M12.8187 3.86035L12.1067 13.1157C12.0776 13.4925 11.9074 13.8445 11.63 14.1012C11.3527 14.3579 10.9886 14.5005 10.6107 14.5003H5.38933C5.0114 14.5005 4.64735 14.3579 4.36999 14.1012C4.09262 13.8445 3.92239 13.4925 3.89333 13.1157L3.18133 3.86035M12.8187 3.86035C12.0492 3.74403 11.2758 3.65574 10.5 3.59568M3.18133 3.86035C2.95333 3.89435 2.72667 3.93101 2.5 3.97035M3.18133 3.86035C3.95076 3.74403 4.72416 3.65575 5.5 3.59568M10.5 3.59568V2.98501C10.5 2.19835 9.89333 1.54235 9.10667 1.51768C8.36908 1.49411 7.63092 1.49411 6.89333 1.51768C6.10667 1.54235 5.5 2.19901 5.5 2.98501V3.59568M10.5 3.59568C8.83581 3.46707 7.16419 3.46707 5.5 3.59568"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Delete
-                            </a>{" "}
-                          </li>
-                        </ul>{" "}
-                      </td>
-                    </tr>
-                    <tr className="file-delete">
-                      <td>
-                        {" "}
-                        <div className="listing-box">
-                          {" "}
-                          <div className="images">
-                            {" "}
-                            <img
-                              src="/images/home/house-32.jpg"
-                              alt="images"
-                            />{" "}
-                          </div>{" "}
-                          <div className="content">
-                            {" "}
-                            <div className="title">
-                              <Link to="/property-details-v1" className="link">
-                                Sunset Heights Estate
-                              </Link>{" "}
-                            </div>{" "}
-                            <div className="text-date">
-                              Posting date: March 22, 2024
-                            </div>{" "}
-                            <div className="text-btn text-primary">
-                              $7,500
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <div className="status-wrap">
-                          {" "}
-                          <a href="#" className="btn-status pending">
-                            {" "}
-                            Pending
-                          </a>{" "}
-                        </div>{" "}
-                      </td>
-                      <td>
-                        {" "}
-                        <ul className="list-action">
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M11.2413 2.9915L12.366 1.86616C12.6005 1.63171 12.9184 1.5 13.25 1.5C13.5816 1.5 13.8995 1.63171 14.134 1.86616C14.3685 2.10062 14.5002 2.4186 14.5002 2.75016C14.5002 3.08173 14.3685 3.39971 14.134 3.63416L4.55467 13.2135C4.20222 13.5657 3.76758 13.8246 3.29 13.9668L1.5 14.5002L2.03333 12.7102C2.17552 12.2326 2.43442 11.7979 2.78667 11.4455L11.242 2.9915H11.2413ZM11.2413 2.9915L13 4.75016"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Edit
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M12.2427 12.2427C13.3679 11.1175 14.0001 9.59135 14.0001 8.00004C14.0001 6.40873 13.3679 4.8826 12.2427 3.75737C11.1175 2.63214 9.59135 2 8.00004 2C6.40873 2 4.8826 2.63214 3.75737 3.75737M12.2427 12.2427C11.1175 13.3679 9.59135 14.0001 8.00004 14.0001C6.40873 14.0001 4.8826 13.3679 3.75737 12.2427C2.63214 11.1175 2 9.59135 2 8.00004C2 6.40873 2.63214 4.8826 3.75737 3.75737M12.2427 12.2427L3.75737 3.75737"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Sold
-                            </a>{" "}
-                          </li>
-                          <li>
-                            <a className="remove-file item">
-                              {" "}
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                {" "}
-                                <path
-                                  d="M9.82667 6.00035L9.596 12.0003M6.404 12.0003L6.17333 6.00035M12.8187 3.86035C13.0467 3.89501 13.2733 3.93168 13.5 3.97101M12.8187 3.86035L12.1067 13.1157C12.0776 13.4925 11.9074 13.8445 11.63 14.1012C11.3527 14.3579 10.9886 14.5005 10.6107 14.5003H5.38933C5.0114 14.5005 4.64735 14.3579 4.36999 14.1012C4.09262 13.8445 3.92239 13.4925 3.89333 13.1157L3.18133 3.86035M12.8187 3.86035C12.0492 3.74403 11.2758 3.65574 10.5 3.59568M3.18133 3.86035C2.95333 3.89435 2.72667 3.93101 2.5 3.97035M3.18133 3.86035C3.95076 3.74403 4.72416 3.65575 5.5 3.59568M10.5 3.59568V2.98501C10.5 2.19835 9.89333 1.54235 9.10667 1.51768C8.36908 1.49411 7.63092 1.49411 6.89333 1.51768C6.10667 1.54235 5.5 2.19901 5.5 2.98501V3.59568M10.5 3.59568C8.83581 3.46707 7.16419 3.46707 5.5 3.59568"
-                                  stroke="#A3ABB0"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />{" "}
-                              </svg>{" "}
-                              Delete
-                            </a>{" "}
-                          </li>
-                        </ul>{" "}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>{" "}
-              </div>{" "}
-              <ul className="wd-navigation">
-                <li>
-                  <a href="#" className="nav-item">
-                    <i className="icon icon-arr-l"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="nav-item">
-                    1
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="nav-item">
-                    2
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="nav-item active">
-                    3
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="nav-item">
-                    4
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="nav-item">
-                    ...
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="nav-item">
-                    <i className="icon icon-arr-r"></i>
-                  </a>
-                </li>
-              </ul>{" "}
-            </div>{" "}
-          </div>{" "}
-          <div className="widget-box-2 wd-chart">
-            {" "}
-            <h5 className="title">Page Inside</h5>{" "}
-            <div className="wd-filter-date">
-              {" "}
-              <div className="left">
-                {" "}
-                <div className="dates active">Day</div>{" "}
-                <div className="dates">Week</div>{" "}
-                <div className="dates">Month</div>{" "}
-                <div className="dates">Year</div>{" "}
-              </div>{" "}
-              <div className="right">
-                {" "}
-                <div className="ip-group icon">
-                  {" "}
-                  <input
-                    type="date"
-                    id="datepicker3"
-                    className="ip-datepicker icon"
-                    placeholder="From Date"
-                  />{" "}
-                </div>{" "}
-                <div className="ip-group icon">
-                  {" "}
-                  <input
-                    type="date"
-                    id="datepicker4"
-                    className="ip-datepicker icon"
-                    placeholder="To Date"
-                  />{" "}
-                </div>{" "}
-              </div>{" "}
-            </div>{" "}
-            <div className="chart-box">
-              {" "}
-              <DashboardChart />{" "}
-            </div>{" "}
-          </div>{" "}
-        </div>{" "}
-        <div className="col-xl-3">
-          {" "}
-          <div className="widget-box-2 mess-box mb-20">
-            {" "}
-            <h5 className="title">Messages</h5>{" "}
-            <ul className="list-mess">
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png9.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Themesflat</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Aenean scelerisque vulputate tincidunt. Maecenas lorem
-                  sapien{" "}
-                </p>{" "}
+      <div className="widget-box-2 mb-20">
+        <h5 className="title">Hello, {firstName}</h5>
+
+        {/* The one thing most worth doing, said before any numbers. */}
+        <NextAction summary={summary} isBroker={isBroker} isAdmin={isAdmin} />
+      </div>
+
+      <div className="lx-admin__cards">
+        {isAdmin && summary?.stats ? (
+          <>
+            <Card label="Waiting for review" value={summary.stats.pendingApprovals} to="/admin" accent />
+            <Card label="New messages" value={summary.stats.contactMessages?.new} to="/admin" accent />
+            <Card label="Broker applications" value={summary.stats.brokerApplications} to="/admin" accent />
+            <Card label="Live listings" value={summary.stats.listings?.approved} to="/admin" />
+          </>
+        ) : null}
+
+        {isBroker ? (
+          <>
+            <Card label="Drafts" value={summary?.drafts} to="/my-property" accent />
+            <Card label="Waiting for review" value={summary?.pending} to="/my-property" />
+            <Card label="Live listings" value={summary?.live} to="/my-property" />
+          </>
+        ) : null}
+
+        <Card label="Saved land" value={summary?.favourites} to="/my-favorites" />
+        <Card label="My enquiries" value={summary?.enquiries} to="/my-enquiries" />
+        <Card label="Unread messages" value={summary?.unread} to="/message" accent />
+      </div>
+
+      {/* A buyer who has not applied is shown how to, because that is the whole funnel. */}
+      {!isBroker && user.brokerApplicationStatus !== "approved" ? (
+        <BecomeBrokerForm />
+      ) : null}
+
+      {isBroker && summary?.listings?.length ? (
+        <div className="widget-box-2 mb-20">
+          <div className="lx-admin__panel-head">
+            <h5 className="title">Your most recent listings</h5>
+            <Link className="tf-btn style-border pd-10" to="/my-property">
+              See all
+            </Link>
+          </div>
+
+          <ul className="lx-admin__list">
+            {summary.listings.slice(0, 5).map((listing) => (
+              <li key={listing.id} className="lx-admin__row">
+                <div className="lx-admin__row-main">
+                  <strong>{listing.title}</strong>
+                  <span className="lx-admin__meta">
+                    {formatIndianShort(listing.pricePaise)} · {listing.status} ·{" "}
+                    {listing.viewsCount} view{listing.viewsCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="lx-admin__row-actions">
+                  <Link className="tf-btn style-border pd-10" to="/my-property">
+                    Manage
+                  </Link>
+                </div>
               </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png10.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">ThemeMu</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Nullam lacinia lorem id sapien suscipit, vitae pellentesque
-                  metus maximus. Duis eu mollis dolor. Proin faucibus eu lectus
-                  a eleifend{" "}
-                </p>{" "}
-              </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png11.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Cameron Williamson</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  In consequat lacus augue, a vestibulum est aliquam non
-                </p>{" "}
-              </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png12.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Esther Howard</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Cras congue in justo vel dapibus. Praesent euismod, lectus et
-                  aliquam pretium{" "}
-                </p>{" "}
-              </li>
-            </ul>{" "}
-          </div>{" "}
-          <div className="widget-box-2 mess-box">
-            {" "}
-            <h5 className="title">Recent Reviews</h5>{" "}
-            <ul className="list-mess">
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png13.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Bessie Cooper</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Maecenas eu lorem et urna accumsan vestibulum vel vitae
-                  magna.{" "}
-                </p>{" "}
-                <ul className="list-star">
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                </ul>{" "}
-              </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png14.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Annette Black</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Nullam rhoncus dolor arcu, et commodo tellus semper vitae.
-                  Aenean finibus tristique lectus, ac lobortis mauris venenatis
-                  ac.{" "}
-                </p>{" "}
-                <ul className="list-star">
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                </ul>{" "}
-              </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png15.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Ralph Edwards</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Vivamus viverra semper convallis. Integer vestibulum tempus
-                  tincidunt.{" "}
-                </p>{" "}
-                <ul className="list-star">
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                </ul>{" "}
-              </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png16.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Jerome Bell</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Fusce sit amet purus eget quam eleifend hendrerit nec a erat.
-                  Sed turpis neque, iaculis blandit viverra ut, dapibus eget
-                  nisi.{" "}
-                </p>{" "}
-                <ul className="list-star">
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                </ul>{" "}
-              </li>
-              <li className="mess-item">
-                {" "}
-                <div className="user-box">
-                  {" "}
-                  <div className="avatar">
-                    {" "}
-                    <img src="/images/avatar/avt-png17.png" alt="avt" />{" "}
-                  </div>{" "}
-                  <div className="content">
-                    {" "}
-                    <div className="name fw-6">Albert Flores</div>{" "}
-                    <span className="caption-2 text-variant-3">
-                      3 day ago
-                    </span>{" "}
-                  </div>{" "}
-                </div>{" "}
-                <p>
-                  Donec bibendum nibh quis nisl luctus, at aliquet ipsum
-                  bibendum. Fusce at dui tincidunt nulla semper venenatis at et
-                  magna. Mauris turpis lorem, ultricies vel justo sed.
-                </p>{" "}
-                <ul className="list-star">
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                  <li className="icon icon-star"></li>
-                </ul>{" "}
-              </li>
-            </ul>{" "}
-          </div>{" "}
-        </div>{" "}
-      </div>{" "}
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </>
+  );
+}
+
+/** One sentence: the thing most worth doing right now. */
+function NextAction({ summary, isBroker, isAdmin }) {
+  if (!summary) return <p className="lx-note">Gathering your things…</p>;
+
+  if (isAdmin && summary.stats?.pendingApprovals > 0) {
+    return (
+      <p className="lx-note">
+        {summary.stats.pendingApprovals} listing
+        {summary.stats.pendingApprovals === 1 ? " is" : "s are"} waiting for review.{" "}
+        <Link to="/admin">Open the queue</Link>.
+      </p>
+    );
+  }
+
+  if (summary.unread > 0) {
+    return (
+      <p className="lx-note">
+        You have {summary.unread} unread message{summary.unread === 1 ? "" : "s"}.{" "}
+        <Link to="/message">Read them</Link>.
+      </p>
+    );
+  }
+
+  if (isBroker && summary.drafts > 0) {
+    return (
+      <p className="lx-note">
+        {summary.drafts} listing{summary.drafts === 1 ? "" : "s"} still unsent — nobody can
+        see {summary.drafts === 1 ? "it" : "them"} until you send{" "}
+        {summary.drafts === 1 ? "it" : "them"} for review.{" "}
+        <Link to="/my-property">Finish up</Link>.
+      </p>
+    );
+  }
+
+  if (isBroker && summary.live === 0) {
+    return (
+      <p className="lx-note">
+        Nothing of yours is live yet. <Link to="/add-property">List your first property</Link>{" "}
+        — it takes about five minutes.
+      </p>
+    );
+  }
+
+  return (
+    <p className="lx-note">
+      Nothing needs you right now. <Link to="/properties">Browse land in Gujarat</Link>.
+    </p>
+  );
+}
+
+function Card({ label, value, to, accent }) {
+  return (
+    <Link className={`lx-admin__card${accent && value > 0 ? " is-accent" : ""}`} to={to}>
+      <span className="lx-admin__card-value">{value ?? "—"}</span>
+      <span className="lx-admin__card-label">{label}</span>
+    </Link>
   );
 }

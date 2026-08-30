@@ -1,6 +1,11 @@
 import { Router, type Router as ExpressRouter } from 'express';
 import { z } from 'zod';
-import { enquiryStatusSchema, favouriteListQuerySchema } from '@locatex/contracts';
+import {
+  enquiryStatusSchema,
+  favouriteListQuerySchema,
+  updateBrokerProfileSchema,
+  updateProfileSchema,
+} from '@locatex/contracts';
 import {
   addFavourite,
   favouriteIds,
@@ -14,6 +19,9 @@ import {
   unlockCountForBroker,
 } from '../../application/buyer/enquiries.js';
 import { serializeProperty } from '../../domain/property/serialize.js';
+import { UserModel } from '../../infrastructure/db/models/User.js';
+import { toSessionUser } from '../../application/auth/session.js';
+import { AppError } from '../../shared/AppError.js';
 import { principalOf, requireRole, requireUser, userOf } from '../middleware/authenticate.js';
 
 /**
@@ -149,6 +157,61 @@ brokerAreaRouter.get('/stats', async (req, res, next) => {
       listEnquiriesForBroker(brokerId, 'new'),
     ]);
     res.json({ data: { contactUnlocks30Days: unlocks, newEnquiries: enquiries.length } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+/**
+ * Editing your own account.
+ *
+ * Neither the email address nor the mobile number can be changed here. Both are login
+ * identifiers and both have been verified, so moving one is a re-verification flow — a
+ * plain form field would let somebody move their account to an address they have never
+ * proved they own.
+ */
+meRouter.patch('/profile', async (req, res, next) => {
+  try {
+    const user = userOf(req);
+    const data = updateProfileSchema.parse(req.body);
+
+    const account = await UserModel.findOne({ _id: user.id, deletedAt: null });
+    if (!account) throw AppError.notFound('Account');
+
+    if (data.fullName !== undefined) account.fullName = data.fullName;
+    if (data.avatarUrl !== undefined) account.avatarUrl = data.avatarUrl;
+    if (data.preferredDistrict !== undefined) {
+      account.set('buyerProfile.preferredDistrict', data.preferredDistrict ?? undefined);
+    }
+    if (data.budgetBand !== undefined) {
+      account.set('buyerProfile.budgetBand', data.budgetBand ?? undefined);
+    }
+
+    await account.save();
+    res.json({ user: toSessionUser(account) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** The details a buyer sees on a broker's public profile. */
+meRouter.patch('/broker-profile', requireRole('broker', 'admin'), async (req, res, next) => {
+  try {
+    const user = userOf(req);
+    const data = updateBrokerProfileSchema.parse(req.body);
+
+    const account = await UserModel.findOne({ _id: user.id, deletedAt: null });
+    if (!account?.brokerProfile) {
+      throw new AppError('CONFLICT', 'There is no broker profile on this account yet.');
+    }
+
+    for (const [field, value] of Object.entries(data)) {
+      account.set(`brokerProfile.${field}`, value ?? undefined);
+    }
+    await account.save();
+
+    res.json({ updated: true });
   } catch (error) {
     next(error);
   }

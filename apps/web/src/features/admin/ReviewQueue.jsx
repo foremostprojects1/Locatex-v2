@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { formatIndianShort } from "@locatex/contracts";
+import { DOCUMENT_CATEGORY_LABEL, formatBytes, formatIndianShort } from "@locatex/contracts";
 import { adminApi } from "./adminApi";
+import { get } from "../../services/locatexApi";
 import { usePanel } from "./usePanel";
 
 /**
@@ -79,6 +80,9 @@ export default function ReviewQueue({ onChanged }) {
                   Last rejected: {listing.rejectionReason}
                 </span>
               ) : null}
+
+              {/* The papers, in the place the decision is actually made. */}
+              <DocumentList propertyId={listing.id} />
             </div>
 
             <div className="lx-admin__row-actions">
@@ -144,5 +148,63 @@ export default function ReviewQueue({ onChanged }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+
+/**
+ * The documents attached to a listing, shown inside the review row.
+ *
+ * Fetched per row rather than with the queue: most rows are never expanded, and a reviewer
+ * opening one listing should not have paid for the documents of the other twenty.
+ */
+function DocumentList({ propertyId }) {
+  const [documents, setDocuments] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  const load = async () => {
+    setOpen(true);
+    if (documents) return;
+    try {
+      const response = await get(`/properties/${propertyId}/documents`);
+      setDocuments(response.data);
+    } catch {
+      setDocuments([]);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button type="button" className="lx-linkbutton" onClick={load}>
+        Show documents
+      </button>
+    );
+  }
+
+  if (!documents) return <span className="lx-admin__meta">Loading…</span>;
+
+  if (documents.length === 0) {
+    return (
+      <span className="lx-admin__meta is-warning">
+        No documents attached. Nothing stops you approving it — v1 never required any — but
+        there is nothing here to check the survey number against.
+      </span>
+    );
+  }
+
+  return (
+    <span className="lx-admin__docs">
+      {documents.map((document) => (
+        <a
+          key={document.id}
+          href={`/api/v1/documents/${document.id}/content`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {DOCUMENT_CATEGORY_LABEL[document.category] ?? document.category}
+          <small> ({formatBytes(document.sizeBytes)})</small>
+        </a>
+      ))}
+    </span>
   );
 }

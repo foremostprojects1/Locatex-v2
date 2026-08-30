@@ -1,4 +1,5 @@
 import HeroSearch from "../features/home/HeroSearch";
+import { useFeatured } from "../features/home/useFeatured";
 import ToolsSection from "../features/home/Tools";
 import {
   CategoryStrip,
@@ -20,12 +21,15 @@ import {
  * queries changes no markup.
  */
 export default function Home() {
+  // Real listings, not the theme's demo data. Featured first, newest after — so the page
+  // is never empty on the day the site goes live and nobody has been featured yet.
+  const { listings } = useFeatured();
   return (
     <>
       <HeroSearch />
       <PromiseStrip />
       <CategoryStrip />
-      <FeaturedListings />
+      <FeaturedListings items={listings} />
       <DistrictGrid />
       <WhyLocatex />
       <HowItWorks />

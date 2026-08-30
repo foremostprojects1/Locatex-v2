@@ -6,6 +6,7 @@ import StepLocation from "./steps/StepLocation";
 import StepDetails from "./steps/StepDetails";
 import StepFeatures from "./steps/StepFeatures";
 import StepContact from "./steps/StepContact";
+import StepDocuments from "./steps/StepDocuments";
 
 const STEP_COMPONENTS = {
   basics: StepBasics,
@@ -132,6 +133,18 @@ export default function SubmitWizard({ draftId, propertyId, onFinished, onDraftO
         <div className="box-info-property">
           <StepComponent data={draft.data} setField={draft.setField} errorFor={errorFor} />
         </div>
+
+        {/*
+          Documents attach to a saved listing, so they are offered while editing one rather
+          than mid-way through creating it — there is nothing to attach them to until the
+          draft has become a listing.
+        */}
+        {propertyId && current.id === "features" ? (
+          <div className="lx-wizard__documents">
+            <h6 className="lx-section-title">Documents</h6>
+            <StepDocuments propertyId={propertyId} />
+          </div>
+        ) : null}
 
         {showErrors && draft.issues.length > 0 ? (
           <p className="lx-field__error">

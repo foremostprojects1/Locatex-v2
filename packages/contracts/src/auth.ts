@@ -127,6 +127,9 @@ export const sessionUserSchema = z.object({
   phoneVerified: z.boolean(),
   avatarUrl: z.string().nullable(),
   brokerApplicationStatus: z.enum(['none', 'pending', 'approved', 'rejected']),
+  /** The buyer's own preferences, so the profile form can show what is currently set. */
+  preferredDistrict: z.string().nullable(),
+  budgetBand: budgetBandSchema.nullable(),
 });
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 
@@ -135,3 +138,34 @@ export const OTP_TTL_MINUTES = 10;
 export const OTP_MAX_ATTEMPTS = 5;
 export const EMAIL_TOKEN_TTL_HOURS = 24;
 export const RESET_TOKEN_TTL_MINUTES = 10;
+
+/**
+ * Editing your own account.
+ *
+ * The email address and the mobile number are deliberately absent: both are login
+ * identifiers and both are verified, so changing one is a re-verification flow rather than
+ * a form field. Doing it here would let someone move their account to an address they have
+ * not proved they own.
+ */
+export const updateProfileSchema = z
+  .object({
+    fullName: z.string().trim().min(2, 'Enter your full name').max(80).optional(),
+    avatarUrl: z.string().url().max(500).nullable().optional(),
+    preferredDistrict: z.string().trim().min(2).max(60).nullable().optional(),
+    budgetBand: budgetBandSchema.nullable().optional(),
+  })
+  .strict();
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+/** A broker editing the details buyers see on their profile page. */
+export const updateBrokerProfileSchema = z
+  .object({
+    agencyName: z.string().trim().min(2).max(120).optional(),
+    officeAddress: z.string().trim().min(10).max(300).optional(),
+    district: z.string().trim().min(2).max(60).optional(),
+    reraNumber: z.string().trim().max(40).nullable().optional(),
+    experienceYears: z.coerce.number().int().min(0).max(70).nullable().optional(),
+    about: z.string().trim().max(1000).nullable().optional(),
+  })
+  .strict();
