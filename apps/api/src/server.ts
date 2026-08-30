@@ -1,3 +1,8 @@
+
+// Before anything reads configuration.
+// Must come first: it populates the environment that later imports read.
+import './config/loadEnvFile.js';
+
 import { createApp } from './http/app.js';
 import { env } from './config/env.js';
 import { connectMongo, disconnectMongo } from './infrastructure/db/mongo.js';

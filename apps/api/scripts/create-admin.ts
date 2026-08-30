@@ -15,6 +15,9 @@
  * unattended provisioning step, set `ADMIN_PASSWORD` in the environment instead — a
  * variable is visible to the process's owner rather than to every user on the box.
  */
+// Must come first: it populates the environment that later imports read.
+import '../src/config/loadEnvFile.js';
+
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import mongoose from 'mongoose';

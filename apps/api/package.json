@@ -18,7 +18,8 @@
     "reference:build": "tsx scripts/build-reference.ts",
     "seed:reference": "tsx scripts/seed-reference.ts",
     "create:admin": "tsx scripts/create-admin.ts",
-    "migrate:v1": "tsx scripts/migrate-v1.ts"
+    "migrate:v1": "tsx scripts/migrate-v1.ts",
+    "db:check": "tsx scripts/check-db.ts"
   },
   "dependencies": {
     "@locatex/contracts": "workspace:*",

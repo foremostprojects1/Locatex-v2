@@ -7,6 +7,9 @@
  * refresh updates names in place rather than duplicating them. Anything a geocoder has
  * already resolved is left alone — see the pincode branch.
  */
+// Must come first: it populates the environment that later imports read.
+import '../src/config/loadEnvFile.js';
+
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import mongoose from 'mongoose';

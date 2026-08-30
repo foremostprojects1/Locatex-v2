@@ -21,6 +21,9 @@
  *     to a new account would be slow, expensive, and would break every link that already
  *     exists in the wild.
  */
+// Must come first: it populates the environment that later imports read.
+import '../src/config/loadEnvFile.js';
+
 import mongoose from 'mongoose';
 import { ulid } from 'ulid';
 import { AREA_UNIT_SQFT } from '@locatex/contracts';

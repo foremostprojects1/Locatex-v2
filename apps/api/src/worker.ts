@@ -1,3 +1,8 @@
+
+// Before anything reads configuration.
+// Must come first: it populates the environment that later imports read.
+import './config/loadEnvFile.js';
+
 import { startWorkers } from './infrastructure/queue/worker.js';
 import {
   registerEmailHandler,
