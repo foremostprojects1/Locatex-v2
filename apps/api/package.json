@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -b tsconfig.json",
-    "start": "node dist/src/server.js",
+    "start": "node dist/server.js",
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -14,7 +14,7 @@
     "migrate:down": "migrate-mongo down -f migrate-mongo-config.cjs",
     "migrate:status": "migrate-mongo status -f migrate-mongo-config.cjs",
     "worker": "tsx watch src/worker.ts",
-    "worker:start": "node dist/src/worker.js",
+    "worker:start": "node dist/worker.js",
     "reference:build": "tsx scripts/build-reference.ts",
     "seed:reference": "tsx scripts/seed-reference.ts",
     "create:admin": "tsx scripts/create-admin.ts",

@@ -39,6 +39,15 @@ async function statusOf(pathname: string): Promise<number> {
   return response.status;
 }
 
+/** Signals the whole group, so pnpm's child server dies with it rather than holding the port. */
+function stopGroup(child: ChildProcess, signal: NodeJS.Signals): void {
+  try {
+    if (child.pid) process.kill(-child.pid, signal);
+  } catch {
+    child.kill(signal);
+  }
+}
+
 async function postStatus(pathname: string): Promise<number> {
   const response = await fetch(`${BASE}${pathname}`, {
     method: 'POST',
@@ -78,8 +87,20 @@ async function main(): Promise<void> {
   const replSet = mongo ? undefined : await MongoMemoryReplSet.create({ replSet: { count: 1 } });
   const mongoUri = mongo ?? replSet!.getUri();
 
-  const server = spawn('node', ['apps/api/dist/server.js'], {
+  /**
+   * Started with the documented command, not by spawning the built file directly.
+   *
+   * That distinction matters: this check passed for weeks while `pnpm start` was broken,
+   * because it ran `node apps/api/dist/server.js` while the package script pointed at a
+   * path the build had stopped emitting. Verifying the artefact is not the same as
+   * verifying the command in the deployment instructions.
+   *
+   * `detached` so the whole process group can be killed — pnpm spawns node as a child, and
+   * signalling pnpm alone leaves the server holding the port.
+   */
+  const server = spawn('pnpm', ['start'], {
     cwd: REPO_ROOT,
+    detached: true,
     env: {
       ...process.env,
       MONGODB_URI: mongoUri,
@@ -161,9 +182,9 @@ async function main(): Promise<void> {
     check('the built server boots and serves', false, String(error));
     console.warn(serverLog.join('').slice(-1500));
   } finally {
-    server.kill('SIGTERM');
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    if (server.exitCode === null) server.kill('SIGKILL');
+    stopGroup(server, 'SIGTERM');
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    if (server.exitCode === null) stopGroup(server, 'SIGKILL');
     await replSet?.stop();
   }
 
