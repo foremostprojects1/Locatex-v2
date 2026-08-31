@@ -17,16 +17,24 @@ import { del, get, post } from "../../services/locatexApi";
  * The photographs a buyer sees are proxied back through the API, because Drive has no
  * public address we could hand out that would not also be guessable.
  */
-export default function ImageUploader({ propertyId, onChange }) {
+export default function ImageUploader({ propertyId, draftId, onChange }) {
   const [photos, setPhotos] = useState([]);
   const [busy, setBusy] = useState(0);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
 
+  // A listing once it exists, the draft before that — the photographs follow the draft
+  // into the listing when the wizard finishes, so nothing is uploaded twice.
+  const base = propertyId
+    ? `/properties/${propertyId}`
+    : draftId
+      ? `/property-drafts/${draftId}`
+      : null;
+
   const load = useCallback(async () => {
-    if (!propertyId) return;
+    if (!base) return;
     try {
-      const response = await get(`/properties/${propertyId}/photos`);
+      const response = await get(`${base}/photos`);
       setPhotos(response.data);
       onChange?.(response.data.map((photo, index) => ({
         url: photo.url,
@@ -38,19 +46,14 @@ export default function ImageUploader({ propertyId, onChange }) {
     }
     // Keyed on the listing alone. `onChange` is rebuilt on every render by the wizard,
     // so depending on it here would reload the photographs in a loop.
-  }, [propertyId]);
+  }, [base]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  if (!propertyId) {
-    return (
-      <p className="lx-note">
-        Finish the listing first — it will be saved as a draft, and you can add photographs
-        to it straight afterwards.
-      </p>
-    );
+  if (!base) {
+    return <p className="lx-note">Opening the photo library…</p>;
   }
 
   const room = MAX_IMAGES_PER_PROPERTY - photos.length;
@@ -69,12 +72,17 @@ export default function ImageUploader({ propertyId, onChange }) {
     setBusy(chosen.length);
     try {
       for (const file of chosen) {
-        const session = await post(`/properties/${propertyId}/documents/upload-session`, {
-          category: "photo",
-          fileName: file.name,
-          mimeType: file.type,
-          sizeBytes: file.size,
-        });
+        const session = await post(
+          propertyId
+            ? `${base}/documents/upload-session`
+            : `${base}/photos/upload-session`,
+          {
+            ...(propertyId ? { category: "photo" } : {}),
+            fileName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+          },
+        );
 
         const sent = await fetch(session.data.uploadUrl, {
           method: "PUT",

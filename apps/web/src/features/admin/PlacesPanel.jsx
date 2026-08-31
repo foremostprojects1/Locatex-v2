@@ -265,6 +265,17 @@ export default function PlacesPanel() {
 
       {editing ? (
         <PlaceForm
+          /*
+           * The key is the fix, not decoration.
+           *
+           * `PlaceForm` seeds its fields from `row` with `useState`, which only reads the
+           * prop on first mount. Clicking Edit on a second row swapped the prop while React
+           * kept the same instance, so the form still held the first row's values — it
+           * looked like editing the wrong record, and saving would have renamed it.
+           *
+           * Keying on the row forces a fresh instance, so the initial state is read again.
+           */
+          key={editing.row?.id ?? editing.row?.slug ?? "new"}
           level={editing.level}
           row={editing.row}
           districts={districts}

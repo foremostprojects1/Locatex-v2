@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { formatBytes } from "@locatex/contracts";
 import { adminApi } from "./adminApi";
 import { usePanel } from "./usePanel";
+import Loader from "../../components/common/Loader";
 
 /**
  * Where property documents are kept.
@@ -66,7 +67,7 @@ export default function StoragePanel() {
       ) : null}
       {error ? <p className="lx-field__error">{error}</p> : null}
 
-      {panel.loading ? <p className="lx-note">Loading…</p> : null}
+      {panel.loading ? <Loader /> : null}
 
       {status && !status.connected ? (
         <>

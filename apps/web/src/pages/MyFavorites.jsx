@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { get } from "../services/locatexApi";
 import PropertyCard from "../features/listings/PropertyCard";
 import { useSession } from "../hooks/useSession";
+import Loader from "../components/common/Loader";
 
 /**
  * The listings this buyer saved.
@@ -26,7 +27,7 @@ export default function MyFavorites() {
     return () => controller.abort();
   }, [isSignedIn]);
 
-  if (sessionLoading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (sessionLoading) return <Loader size="page" label="One moment" />;
 
   if (!isSignedIn) {
     return (

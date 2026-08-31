@@ -12,7 +12,7 @@ import {
 } from '../../infrastructure/db/models/PropertyDraft.js';
 import { PropertyModel, type PropertyDoc } from '../../infrastructure/db/models/Property.js';
 import { createProperty, updateProperty } from './writeProperty.js';
-import { actorFor, type StatusActor } from '../../domain/property/status.js';
+import type { StatusActor } from '../../domain/property/status.js';
 import { AppError } from '../../shared/AppError.js';
 
 /**
@@ -64,10 +64,19 @@ export async function startDraft(
   return PropertyDraftModel.create({ brokerId, step: 'basics', data: {} });
 }
 
+/**
+ * A draft belongs to the broker writing it, and to nobody else — administrators included.
+ *
+ * `actorFor` grants an admin the same rights as an owner everywhere else, which is right
+ * for a *listing*: an admin reviews, approves and withdraws them. A draft has not been
+ * submitted to anybody. It is a half-written form, and there is no administrative task that
+ * needs to read one. "The site owner can read what I have not sent yet" is not a promise
+ * worth making to the brokers this marketplace depends on.
+ */
 export async function getDraft(draftId: string, user: StatusActor): Promise<PropertyDraftDoc> {
   const draft = await PropertyDraftModel.findById(draftId);
   if (!draft) throw AppError.notFound('Draft');
-  if (!actorFor({ brokerId: draft.brokerId }, user)) {
+  if (draft.brokerId !== user.id) {
     throw new AppError('NOT_OWNER', 'That draft belongs to another broker.');
   }
   return draft;
@@ -135,6 +144,11 @@ export async function completeDraft(
   const property = draft.propertyId
     ? await updateProperty(draft.propertyId, user, input)
     : await createProperty(draft.brokerId, input);
+
+  // The photographs uploaded while drafting are already in Drive; re-point them rather
+  // than asking the broker to upload the same eight files again.
+  const { adoptDraftDocuments } = await import('../documents/documents.js');
+  await adoptDraftDocuments(draft.id, property.id);
 
   await draft.deleteOne();
   return property;

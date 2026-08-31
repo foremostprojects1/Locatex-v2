@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BUDGET_BANDS, registerSchema } from "@locatex/contracts";
 import { MailFieldIcon, PasswordFieldIcon, UserFieldIcon } from "./accountIcons";
 import { useSession } from "../../hooks/useSession";
+import AccountAside from "./AccountAside";
 
 /**
  * `#modalRegister` — creating an account, then confirming it.
@@ -91,13 +92,11 @@ export default function RegisterModal() {
 
   if (step === "confirm") {
     return (
-      <div className="modal modal-account fade" id="modalRegister">
+      <div className="modal modal-account lx-account-modal fade" id="modalRegister">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="flat-account">
-              <div className="banner-account">
-                <img src="/images/banner/banner-account2.jpg" alt="banner" />
-              </div>
+              <AccountAside variant="register" />
 
               <form className="form-account" onSubmit={handleVerifyPhone} noValidate>
                 <div className="title-box">
@@ -194,13 +193,11 @@ export default function RegisterModal() {
   }
 
   return (
-    <div className="modal modal-account fade" id="modalRegister">
+    <div className="modal modal-account lx-account-modal fade" id="modalRegister">
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="flat-account">
-            <div className="banner-account">
-              <img src="/images/banner/banner-account2.jpg" alt="banner" />
-            </div>
+            <AccountAside variant="register" />
 
             <form className="form-account" onSubmit={handleRegister} noValidate>
               <div className="title-box">

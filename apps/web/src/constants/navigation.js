@@ -10,7 +10,11 @@ import { CONTACT } from "../content/company";
  * Scope for this release is rental listings of land and plots in Gujarat, so the filters
  * offered here are the ones that actually narrow that: what kind of parcel, and where.
  */
-export const MAIN_MENU = [
+export function mainMenuFor(user) {
+  const isBroker = user?.role === "broker" || user?.role === "admin";
+  const isAdmin = user?.role === "admin";
+
+  return [
   {
     label: "Find land",
     className: "home",
@@ -26,8 +30,10 @@ export const MAIN_MENU = [
     children: [
       { label: "Post a listing — free", to: "/add-property" },
       { label: "My listings", to: "/my-property" },
-      { label: "Become a broker", to: "/my-property" },
-    ],
+      // Only somebody who is not one yet. Offering it to a broker reads as though their
+      // approval did not take.
+      !isBroker && { label: "Become a broker", to: "/my-property" },
+    ].filter(Boolean),
   },
   {
     label: "Company",
@@ -38,18 +44,25 @@ export const MAIN_MENU = [
       { label: "Terms & conditions", to: "/privacy-policy" },
     ],
   },
-  {
+  // Nothing under "My account" means anything to a visitor, and every item behind it
+  // would bounce them to the sign-in dialog.
+  user && {
     label: "My account",
     children: [
       { label: "Dashboard", to: "/dashboard" },
-      { label: "My listings", to: "/my-property" },
+      isAdmin && { label: "Admin dashboard", to: "/admin" },
+      isBroker && { label: "My listings", to: "/my-property" },
       { label: "Favourites", to: "/my-favorites" },
       { label: "My enquiries", to: "/my-enquiries" },
       { label: "Messages", to: "/message" },
       { label: "My profile", to: "/my-profile" },
-    ],
+    ].filter(Boolean),
   },
-];
+  ].filter(Boolean);
+}
+
+/** The signed-out menu, for anything rendering before the session resolves. */
+export const MAIN_MENU = mainMenuFor(null);
 
 /** The dropdown under the avatar. Short on purpose — the dashboard carries the rest. */
 export const ACCOUNT_MENU = [

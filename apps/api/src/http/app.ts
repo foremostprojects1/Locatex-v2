@@ -17,7 +17,11 @@ import { adminRouter } from './routes/admin.js';
 import { brokerRouter } from './routes/brokers.js';
 import { brokerAreaRouter, meRouter } from './routes/buyer.js';
 import { chatRouter } from './routes/chat.js';
-import { documentRouter, propertyDocumentRouter } from './routes/documents.js';
+import {
+  documentRouter,
+  propertyDocumentRouter,
+  propertyDraftPhotoRouter,
+} from './routes/documents.js';
 import { publicRouter } from './routes/public.js';
 import { attachPrincipal } from './middleware/authenticate.js';
 import { csrfProtection } from './middleware/csrf.js';
@@ -107,6 +111,7 @@ export function createApp(): Express {
   app.use('/api/v1/reference', referenceRouter);
   app.use('/api/v1/properties', propertyRouter);
   app.use('/api/v1/property-drafts', propertyDraftRouter);
+  app.use('/api/v1/property-drafts', propertyDraftPhotoRouter);
   app.use('/api/v1/admin', adminRouter);
   app.use('/api/v1/brokers', brokerRouter);
   app.use('/api/v1/me', meRouter);

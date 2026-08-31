@@ -3,6 +3,7 @@ import { DOCUMENT_CATEGORY_LABEL, formatBytes, formatIndianShort } from "@locate
 import { adminApi } from "./adminApi";
 import { get } from "../../services/locatexApi";
 import { usePanel } from "./usePanel";
+import Loader from "../../components/common/Loader";
 
 /**
  * The approval queue.
@@ -52,7 +53,7 @@ export default function ReviewQueue({ onChanged }) {
       </header>
 
       {panel.error ? <p className="lx-field__error">{panel.error.message}</p> : null}
-      {panel.loading ? <p className="lx-note">Loading…</p> : null}
+      {panel.loading ? <Loader /> : null}
 
       {!panel.loading && listings.length === 0 ? (
         <p className="lx-note">
@@ -181,7 +182,7 @@ function DocumentList({ propertyId }) {
     );
   }
 
-  if (!documents) return <span className="lx-admin__meta">Loading…</span>;
+  if (!documents) return <Loader size="inline" />;
 
   if (documents.length === 0) {
     return (

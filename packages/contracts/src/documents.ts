@@ -159,3 +159,25 @@ export const formatBytes = (bytes: number): string => {
   }
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unit]}`;
 };
+
+
+/**
+ * The photo upload, which is the same request with a narrower file type.
+ *
+ * `requestUploadSchema` admits a PDF because a 7/12 extract usually is one. A listing card
+ * cannot render a PDF, so a photograph is checked against the image types only — otherwise
+ * a broker uploads a deed, sees it accepted, and finds a blank card where the land should be.
+ */
+export const requestPhotoUploadSchema = z
+  .object({
+    fileName: z.string().trim().min(1).max(200),
+    mimeType: z.enum(ALLOWED_IMAGE_TYPES, {
+      errorMap: () => ({ message: 'Photographs must be JPEG, PNG or WebP' }),
+    }),
+    sizeBytes: z
+      .number()
+      .int()
+      .positive()
+      .max(MAX_IMAGE_BYTES, 'That photograph is larger than 10 MB'),
+  })
+  .strict();

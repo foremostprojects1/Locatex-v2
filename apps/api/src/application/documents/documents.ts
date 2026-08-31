@@ -14,6 +14,7 @@ import {
   UploadSessionModel,
 } from '../../infrastructure/db/models/Document.js';
 import { PropertyModel } from '../../infrastructure/db/models/Property.js';
+import { PropertyDraftModel } from '../../infrastructure/db/models/PropertyDraft.js';
 import { recordAudit } from '../../infrastructure/db/models/AuditEvent.js';
 import { logger } from '../../infrastructure/observability/logger.js';
 import { actorFor, type StatusActor } from '../../domain/property/status.js';
@@ -48,20 +49,45 @@ async function ownedProperty(propertyId: string, user: StatusActor) {
 }
 
 /**
+ * The draft equivalent of `ownedProperty`.
+ *
+ * A photograph uploaded from the wizard belongs to a draft, and a draft belongs to exactly
+ * one broker — so the same question is asked, of a different record.
+ */
+async function ownedDraft(draftId: string | null | undefined, user: StatusActor) {
+  if (!draftId) throw AppError.notFound('Listing');
+
+  const draft = await PropertyDraftModel.findById(draftId).lean();
+  if (!draft) throw AppError.notFound('Draft');
+
+  if (!actorFor({ brokerId: draft.brokerId }, user)) {
+    throw new AppError('NOT_OWNER', 'That draft belongs to another broker.');
+  }
+  return draft;
+}
+
+/**
  * Step one: reserve a document row and ask storage for somewhere to put the file.
  *
  * The row is written before the bytes exist so a failed upload leaves a trace — the exact
  * failure mode that destroyed v1's documents was one that left nothing behind at all.
  */
 export async function requestUpload(
-  propertyId: string,
+  owner: { propertyId?: string; draftId?: string },
   user: StatusActor,
   input: RequestUploadInput,
   storage: DocumentStorage,
 ): Promise<{ documentId: string; uploadUrl: string; expiresAt: Date }> {
   const data = requestUploadSchema.parse(input);
-  // Called for the ownership check it performs, which throws if this is not the caller's.
-  await ownedProperty(propertyId, user);
+
+  // Called for the ownership check each performs, which throws if this is not the caller's.
+  if (owner.propertyId) await ownedProperty(owner.propertyId, user);
+  else await ownedDraft(owner.draftId, user);
+
+  const scope = owner.propertyId
+    ? { propertyId: owner.propertyId }
+    : { draftId: owner.draftId };
+  const folderKey = owner.propertyId ?? `DRAFT-${owner.draftId}`;
 
   if (!(await storage.isConnected())) {
     throw new AppError(
@@ -78,7 +104,7 @@ export async function requestUpload(
   const limit = isPhoto ? MAX_IMAGES_PER_PROPERTY : MAX_DOCUMENTS_PER_PROPERTY;
 
   const live = await PropertyDocumentModel.countDocuments({
-    propertyId,
+    ...scope,
     category: isPhoto
       ? 'photo'
       : mongoose.trusted({ $in: [...PAPERWORK_CATEGORIES] }),
@@ -98,12 +124,12 @@ export async function requestUpload(
   const rootId = await rootFolder(storage);
   // Named by the listing's id, never by its title: titles are edited, and a folder found
   // by name is a folder that will one day be the wrong one.
-  const folderId = await storage.ensureFolder(`PROP-${propertyId}`, rootId);
+  const folderId = await storage.ensureFolder(`PROP-${folderKey}`, rootId);
 
   // A re-issued document supersedes the previous one rather than replacing it: the old
   // 7/12 is what a buyer saw last week, and losing it loses the record of the sale.
   const previous = await PropertyDocumentModel.findOne({
-    propertyId,
+    ...scope,
     category: data.category,
     status: 'uploaded',
     deletedAt: null,
@@ -112,7 +138,7 @@ export async function requestUpload(
     .lean();
 
   const document = await PropertyDocumentModel.create({
-    propertyId,
+    ...scope,
     uploadedBy: user.id,
     category: data.category,
     fileName: data.fileName,
@@ -132,7 +158,7 @@ export async function requestUpload(
 
   await UploadSessionModel.create({
     documentId: document.id,
-    propertyId,
+    ...scope,
     createdBy: user.id,
     uploadUrl: session.uploadUrl,
     externalId: session.externalId,
@@ -164,7 +190,8 @@ export async function confirmUpload(
 
   const document = await PropertyDocumentModel.findById(documentId);
   if (!document) throw AppError.notFound('Document');
-  await ownedProperty(document.propertyId, user);
+  if (document.propertyId) await ownedProperty(document.propertyId, user);
+  else await ownedDraft(document.draftId, user);
 
   const session = await UploadSessionModel.findOne({ documentId, status: 'open' });
   if (!session) {
@@ -210,8 +237,12 @@ export async function confirmUpload(
   }
 
   // The same bytes already on this listing: keep one, and say so plainly.
+  const scope = document.propertyId
+    ? { propertyId: document.propertyId }
+    : { draftId: document.draftId };
+
   const duplicate = await PropertyDocumentModel.findOne({
-    propertyId: document.propertyId,
+    ...scope,
     checksum: stored.checksum,
     status: 'uploaded',
     deletedAt: null,
@@ -241,7 +272,7 @@ export async function confirmUpload(
   // Mark the previous version superseded, without deleting it.
   await PropertyDocumentModel.updateMany(
     {
-      propertyId: document.propertyId,
+      ...scope,
       category: document.category,
       status: 'uploaded',
       version: mongoose.trusted({ $lt: document.version }),
@@ -255,7 +286,7 @@ export async function confirmUpload(
     actorRole: user.role,
     action: 'document.upload',
     subjectType: 'property',
-    subjectId: document.propertyId,
+    subjectId: document.propertyId ?? document.draftId ?? String(document._id),
     metadata: { documentId: document.id, category: document.category, version: document.version },
   });
 
@@ -298,7 +329,8 @@ export async function removeDocument(
 ): Promise<void> {
   const document = await PropertyDocumentModel.findById(documentId);
   if (!document) throw AppError.notFound('Document');
-  await ownedProperty(document.propertyId, user);
+  if (document.propertyId) await ownedProperty(document.propertyId, user);
+  else await ownedDraft(document.draftId, user);
 
   document.deletedAt = new Date();
   await document.save();
@@ -308,7 +340,7 @@ export async function removeDocument(
     actorRole: user.role,
     action: 'document.remove',
     subjectType: 'property',
-    subjectId: document.propertyId,
+    subjectId: document.propertyId ?? document.draftId ?? String(document._id),
     metadata: { documentId, category: document.category },
   });
 }
@@ -337,7 +369,7 @@ export async function openDocument(
     actorRole: user.role,
     action: 'document.view',
     subjectType: 'property',
-    subjectId: document.propertyId,
+    subjectId: document.propertyId ?? document.draftId ?? String(document._id),
     metadata: { documentId },
   });
 
@@ -459,9 +491,9 @@ export async function sweepAbandonedUploads(
  * a buyer who has not signed in still sees them, so they cannot go through the authorised
  * document viewer.
  */
-export async function listPhotos(propertyId: string) {
+export async function listPhotos(owner: { propertyId?: string; draftId?: string }) {
   const rows = await PropertyDocumentModel.find({
-    propertyId,
+    ...(owner.propertyId ? { propertyId: owner.propertyId } : { draftId: owner.draftId }),
     category: 'photo',
     status: 'uploaded',
     deletedAt: null,
@@ -505,4 +537,24 @@ export async function openPhoto(documentId: string, storage: DocumentStorage) {
   if (!stream) throw AppError.notFound('Photograph');
 
   return { stream, mimeType: document.mimeType, fileName: document.fileName };
+}
+
+
+/**
+ * Moves a draft's photographs onto the listing it just became.
+ *
+ * Called when the wizard finishes. The files are already in Drive under a `DRAFT-` folder
+ * and are simply re-pointed — re-uploading them would mean a broker who added eight
+ * photographs waits for eight uploads a second time, on the same connection that made them
+ * slow in the first place.
+ */
+export async function adoptDraftDocuments(
+  draftId: string,
+  propertyId: string,
+): Promise<number> {
+  const result = await PropertyDocumentModel.updateMany(
+    { draftId, deletedAt: null },
+    { $set: { propertyId }, $unset: { draftId: '' } },
+  );
+  return result.modifiedCount;
 }

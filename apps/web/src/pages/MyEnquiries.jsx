@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ENQUIRY_CHANNEL_LABEL } from "@locatex/contracts";
 import { get, patch } from "../services/locatexApi";
 import { useSession } from "../hooks/useSession";
+import Loader from "../components/common/Loader";
 
 /**
  * Both sides of the same conversation, on one page.
@@ -43,7 +44,7 @@ export default function MyEnquiries() {
     );
   };
 
-  if (sessionLoading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (sessionLoading) return <Loader size="page" label="One moment" />;
 
   if (!user) {
     return (

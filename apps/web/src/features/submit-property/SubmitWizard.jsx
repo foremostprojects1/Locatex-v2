@@ -7,6 +7,7 @@ import StepDetails from "./steps/StepDetails";
 import StepFeatures from "./steps/StepFeatures";
 import StepContact from "./steps/StepContact";
 import StepDocuments from "./steps/StepDocuments";
+import Loader from "../../components/common/Loader";
 
 const STEP_COMPONENTS = {
   basics: StepBasics,
@@ -61,7 +62,7 @@ export default function SubmitWizard({ draftId, propertyId, onFinished, onDraftO
   const errorFor = (field) => errors[field];
 
   if (draft.status === "loading") {
-    return <div className="widget-box-2 mb-20">Opening your draft…</div>;
+    return <Loader size="page" label="Opening your draft" />;
   }
 
   if (draft.status === "error" && !draft.draft) {
@@ -136,6 +137,7 @@ export default function SubmitWizard({ draftId, propertyId, onFinished, onDraftO
             setField={draft.setField}
             errorFor={errorFor}
             propertyId={propertyId}
+            draftId={draft.draft?.id}
           />
         </div>
 

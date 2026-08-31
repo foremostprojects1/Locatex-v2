@@ -9,6 +9,8 @@ import {
   requestUpload,
   storageStatus,
 } from '../../application/documents/documents.js';
+import { requestPhotoUploadSchema } from '@locatex/contracts';
+import { getDraft } from '../../application/property/drafts.js';
 import { requireRole, userOf } from '../middleware/authenticate.js';
 import { documentStorage } from '../../container.js';
 
@@ -25,12 +27,19 @@ import { documentStorage } from '../../container.js';
  * that briefly made the public contact form return 401 in Phase 9, and one this file is
  * not going to repeat.
  */
+/** Throws unless this draft belongs to the caller. */
+const requireDraftOwner = async (id: string, user: { id: string; role: 'buyer' | 'broker' | 'admin' }) =>
+  getDraft(id, user);
+
 export const documentRouter: ExpressRouter = Router();
 /** Mounted under `/api/v1/properties`, alongside the listing routes. */
 export const propertyDocumentRouter: ExpressRouter = Router({ mergeParams: true });
+/** Mounted under `/api/v1/property-drafts`, for photographs added while still drafting. */
+export const propertyDraftPhotoRouter: ExpressRouter = Router({ mergeParams: true });
 
 documentRouter.use(requireRole('broker', 'admin'));
 propertyDocumentRouter.use(requireRole('broker', 'admin'));
+propertyDraftPhotoRouter.use(requireRole('broker', 'admin'));
 
 /** What an administrator's banner reads: connected, and how full. */
 documentRouter.get('/storage', requireRole('admin'), async (_req, res, next) => {
@@ -44,7 +53,7 @@ documentRouter.get('/storage', requireRole('admin'), async (_req, res, next) => 
 /** The photographs on a listing, for the broker editing it. */
 propertyDocumentRouter.get('/:id/photos', async (req, res, next) => {
   try {
-    res.json({ data: await listPhotos(String(req.params.id)) });
+    res.json({ data: await listPhotos({ propertyId: String(req.params.id) }) });
   } catch (error) {
     next(error);
   }
@@ -63,7 +72,7 @@ propertyDocumentRouter.get('/:id/documents', async (req, res, next) => {
 propertyDocumentRouter.post('/:id/documents/upload-session', async (req, res, next) => {
   try {
     const result = await requestUpload(
-      String(req.params.id),
+      { propertyId: String(req.params.id) },
       userOf(req),
       req.body,
       documentStorage(),
@@ -136,3 +145,36 @@ documentRouter.delete('/:documentId', async (req, res, next) => {
   }
 });
 
+
+
+/**
+ * Photographs on a draft, before the listing exists.
+ *
+ * The wizard used to tell a broker to finish the form first and add pictures afterwards,
+ * which is the wrong way round — the photographs are on the phone while they are standing
+ * in the field, and the form is the part that can wait.
+ */
+propertyDraftPhotoRouter.get('/:id/photos', async (req, res, next) => {
+  try {
+    await requireDraftOwner(String(req.params.id), userOf(req));
+    res.json({ data: await listPhotos({ draftId: String(req.params.id) }) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+propertyDraftPhotoRouter.post('/:id/photos/upload-session', async (req, res, next) => {
+  try {
+    // Validated as a photograph, not as a document: the shared schema admits PDFs.
+    const photo = requestPhotoUploadSchema.parse(req.body);
+    const result = await requestUpload(
+      { draftId: String(req.params.id) },
+      userOf(req),
+      { ...photo, category: 'photo' },
+      documentStorage(),
+    );
+    res.status(201).json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+});

@@ -4,6 +4,7 @@ import { PROPERTY_STATUSES, formatIndianShort } from "@locatex/contracts";
 import { get, post } from "../services/locatexApi";
 import { useSession } from "../hooks/useSession";
 import BecomeBrokerForm from "../features/broker/BecomeBrokerForm";
+import Loader from "../components/common/Loader";
 
 /**
  * A broker's own listings, in every status.
@@ -62,7 +63,7 @@ export default function MyProperty() {
     load();
   }, [load]);
 
-  if (sessionLoading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (sessionLoading) return <Loader size="page" label="One moment" />;
 
   if (!user) {
     return (
@@ -115,7 +116,7 @@ export default function MyProperty() {
       </div>
 
       {error ? <p className="lx-field__error">{error.message}</p> : null}
-      {loading ? <p className="lx-note">Loading…</p> : null}
+      {loading ? <Loader /> : null}
 
       {!loading && listings.length === 0 ? (
         <p className="lx-note">

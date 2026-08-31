@@ -3,6 +3,7 @@ import { BUDGET_BANDS, passwordSchema, updateProfileSchema } from "@locatex/cont
 import { patch, post } from "../services/locatexApi";
 import { useSession } from "../hooks/useSession";
 import { useDistricts } from "../hooks/useReference";
+import Loader from "../components/common/Loader";
 
 /**
  * Your own account: name, photograph, preferences, password.
@@ -15,7 +16,7 @@ import { useDistricts } from "../hooks/useReference";
 export default function MyProfile() {
   const { user, loading, refresh } = useSession();
 
-  if (loading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (loading) return <Loader size="page" label="One moment" />;
 
   if (!user) {
     return (

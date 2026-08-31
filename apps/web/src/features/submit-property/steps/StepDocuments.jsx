@@ -8,6 +8,7 @@ import {
   formatBytes,
 } from "@locatex/contracts";
 import { del, get, post } from "../../../services/locatexApi";
+import Loader from "../../../components/common/Loader";
 
 /**
  * The papers behind the listing.
@@ -111,7 +112,7 @@ export default function StepDocuments({ propertyId }) {
       </p>
 
       {error ? <p className="lx-field__error">{error.message}</p> : null}
-      {loading ? <p className="lx-note">Loading…</p> : null}
+      {loading ? <Loader /> : null}
 
       <div className="lx-docs">
         {DOCUMENT_CATEGORIES.map((category) => {

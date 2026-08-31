@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PasswordFieldIcon, UserFieldIcon } from "./accountIcons";
 import { useSession } from "../../hooks/useSession";
 import { closeModal } from "./modalControl";
+import AccountAside from "./AccountAside";
 
 /**
  * `#modalLogin` — signing in, and asking for a reset link when that is what is needed.
@@ -65,13 +66,11 @@ export default function LoginModal() {
   };
 
   return (
-    <div className="modal modal-account fade" id="modalLogin">
+    <div className="modal modal-account lx-account-modal fade" id="modalLogin">
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="flat-account">
-            <div className="banner-account">
-              <img src="/images/banner/banner-account1.jpg" alt="banner" />
-            </div>
+            <AccountAside variant="signin" />
 
             <form
               className="form-account"

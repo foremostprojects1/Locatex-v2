@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MAIN_MENU } from "../../constants/navigation";
+import { mainMenuFor } from "../../constants/navigation";
+import { useSession } from "../../hooks/useSession";
 
 /**
  * The `.navigation` list shared by the desktop header and the mobile drawer.
@@ -15,9 +16,14 @@ export default function MainNav({ mobile = false, onNavigate }) {
   const toggle = (index) =>
     setOpenIndex((current) => (current === index ? -1 : index));
 
+  const { user } = useSession();
+  // Built from who is signed in: a broker is not offered "Become a broker", and a visitor
+  // is not shown an account menu whose every item would bounce them to the sign-in dialog.
+  const menu = mainMenuFor(user);
+
   return (
     <ul className="navigation clearfix">
-      {MAIN_MENU.map((item, index) => {
+      {menu.map((item, index) => {
         const isCurrent = item.children.some((child) => child.to === pathname);
         const isOpen = mobile && openIndex === index;
         const classes = [

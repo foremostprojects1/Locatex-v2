@@ -8,6 +8,7 @@ import NewsPanel from "../features/admin/NewsPanel";
 import StoragePanel from "../features/admin/StoragePanel";
 import PlacesPanel from "../features/admin/PlacesPanel";
 import { useSession } from "../hooks/useSession";
+import Loader from "../components/common/Loader";
 
 const TABS = [
   { id: "queue", label: "Listings" },
@@ -38,7 +39,7 @@ export default function AdminDashboard() {
     setParams(next === "queue" ? {} : { tab: next }, { replace: true });
   const stats = usePanel(() => adminApi.stats(), []);
 
-  if (loading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (loading) return <Loader size="page" label="One moment" />;
 
   if (user?.role !== "admin") {
     return (

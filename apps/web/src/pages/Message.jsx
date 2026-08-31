@@ -5,6 +5,7 @@ import { post } from "../services/locatexApi";
 import { useConversation, useThreads } from "../features/chat/useChat";
 import { useRealtime } from "../features/chat/useRealtime";
 import { useSession } from "../hooks/useSession";
+import Loader from "../components/common/Loader";
 
 /**
  * Messages: the list of conversations on the left, the open one on the right.
@@ -48,7 +49,7 @@ export default function Message() {
 
   const active = threads.find((thread) => thread.id === activeId);
 
-  if (sessionLoading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (sessionLoading) return <Loader size="page" label="One moment" />;
 
   if (!user) {
     return (
@@ -79,7 +80,7 @@ export default function Message() {
       <aside className="lx-chat__list">
         <h5 className="title">Conversations</h5>
 
-        {loading ? <p className="lx-note">Loading…</p> : null}
+        {loading ? <Loader /> : null}
         {!loading && threads.length === 0 ? (
           <p className="lx-note">
             Nothing yet. Open a listing and ask the broker a question —{" "}
@@ -114,9 +115,7 @@ export default function Message() {
 
       <section className="lx-chat__pane">
         {!activeId ? (
-          <p className="lx-note lx-chat__placeholder">
-            Choose a conversation to read it.
-          </p>
+          <p className="lx-note lx-chat__placeholder">Choose a conversation to read it.</p>
         ) : (
           <>
             <header className="lx-chat__head">
@@ -171,7 +170,7 @@ export default function Message() {
             ) : null}
 
             <div className="lx-chat__messages">
-              {loadingMessages ? <p className="lx-note">Loading…</p> : null}
+              {loadingMessages ? <Loader /> : null}
 
               {messages.map((message) => {
                 const mine = message.senderId === user.id || message.senderId === "me";

@@ -18,7 +18,17 @@ const propertyDocumentSchema = new Schema(
   {
     _id: { type: String, default: () => ulid() },
 
-    propertyId: { type: String, required: true, index: true },
+    /**
+     * One of these is always set, never both.
+     *
+     * A photograph can be uploaded while the listing is still a draft in the wizard — there
+     * is no property to attach it to yet, so it hangs off the draft and is re-pointed when
+     * the draft becomes a listing. Requiring a property first would have meant telling a
+     * broker to finish the form before adding the photographs, which is the wrong way round:
+     * the photographs are on their phone while they are standing in the field.
+     */
+    propertyId: { type: String, default: null, index: true },
+    draftId: { type: String, default: null, index: true },
     uploadedBy: { type: String, required: true },
     category: { type: String, enum: DOCUMENT_CATEGORIES, required: true },
 
@@ -56,17 +66,27 @@ const propertyDocumentSchema = new Schema(
 );
 
 propertyDocumentSchema.index({ propertyId: 1, category: 1, version: -1 });
+propertyDocumentSchema.index({ draftId: 1, category: 1 });
 // The same bytes uploaded twice to the same listing are one document, not two.
+// Partial on both fields: a draft's photographs have no propertyId yet, and two drafts
+// must not collide on a null one.
 propertyDocumentSchema.index(
   { propertyId: 1, checksum: 1 },
-  { unique: true, partialFilterExpression: { checksum: { $type: 'string' } } },
+  {
+    unique: true,
+    partialFilterExpression: {
+      checksum: { $type: 'string' },
+      propertyId: { $type: 'string' },
+    },
+  },
 );
 
 const uploadSessionSchema = new Schema(
   {
     _id: { type: String, default: () => ulid() },
     documentId: { type: String, required: true, index: true },
-    propertyId: { type: String, required: true },
+    propertyId: { type: String, default: null },
+    draftId: { type: String, default: null },
     createdBy: { type: String, required: true },
 
     uploadUrl: { type: String, required: true },

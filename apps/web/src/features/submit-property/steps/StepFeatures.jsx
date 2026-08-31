@@ -1,6 +1,7 @@
 import { useLandAttributes } from "../../../hooks/useReference";
 import { CheckboxGrid } from "../Field";
 import ImageUploader from "../ImageUploader";
+import Loader from "../../../components/common/Loader";
 
 /**
  * What the land has, and what it does not.
@@ -10,7 +11,7 @@ import ImageUploader from "../ImageUploader";
  * v1 keeps meaning what it meant, since every one of v1's nine attributes is in that list
  * with its original value recorded alongside.
  */
-export default function StepFeatures({ data, setField, propertyId }) {
+export default function StepFeatures({ data, setField, propertyId, draftId }) {
   const { amenities, disadvantages, loading } = useLandAttributes();
 
   const toggle = (field) => (slug) => {
@@ -26,7 +27,7 @@ export default function StepFeatures({ data, setField, propertyId }) {
     <>
       <h6 className="lx-section-title">What the land has</h6>
       {loading ? (
-        <p className="lx-note">Loading…</p>
+        <Loader />
       ) : (
         <CheckboxGrid
           items={amenities}
@@ -51,6 +52,7 @@ export default function StepFeatures({ data, setField, propertyId }) {
       <h6 className="lx-section-title">Photographs</h6>
       <ImageUploader
         propertyId={propertyId}
+        draftId={draftId}
         onChange={(next) => setField("images", next)}
       />
     </>

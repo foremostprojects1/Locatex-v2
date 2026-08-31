@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { adminApi } from "./adminApi";
 import { usePanel } from "./usePanel";
+import Loader from "../../components/common/Loader";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const EMPTY = { title: "", body: "", linkUrl: "", imageUrl: "", startsAt: today(), endsAt: "" };
@@ -208,7 +209,7 @@ export default function NewsPanel() {
         </form>
       ) : null}
 
-      {panel.loading ? <p className="lx-note">Loading…</p> : null}
+      {panel.loading ? <Loader /> : null}
 
       <Group title="On the site now" items={live} empty="Nothing is showing on the home page.">
         {(item) => <Row item={item} onEdit={startEdit} onArchive={archive} panel={panel} />}

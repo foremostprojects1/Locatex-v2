@@ -4,6 +4,7 @@ import SubmitWizard from "../features/submit-property/SubmitWizard";
 import { useSession } from "../hooks/useSession";
 import BecomeBrokerForm from "../features/broker/BecomeBrokerForm";
 import StepDocuments from "../features/submit-property/steps/StepDocuments";
+import Loader from "../components/common/Loader";
 
 /**
  * The page a broker lists land from.
@@ -25,7 +26,7 @@ export default function AddProperty() {
     [setParams],
   );
 
-  if (loading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (loading) return <Loader size="page" label="One moment" />;
 
   if (!user) {
     return (

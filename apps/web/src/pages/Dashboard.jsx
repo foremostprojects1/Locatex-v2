@@ -4,6 +4,7 @@ import { formatIndianShort } from "@locatex/contracts";
 import { get } from "../services/locatexApi";
 import { useSession } from "../hooks/useSession";
 import BecomeBrokerForm from "../features/broker/BecomeBrokerForm";
+import Loader from "../components/common/Loader";
 
 /**
  * Where everyone lands after signing in.
@@ -48,7 +49,7 @@ export default function Dashboard() {
     });
   }, [user, isBroker, isAdmin]);
 
-  if (loading) return <div className="widget-box-2 mb-20">One moment…</div>;
+  if (loading) return <Loader size="page" label="One moment" />;
 
   if (!user) {
     return (
@@ -61,7 +62,16 @@ export default function Dashboard() {
     );
   }
 
-  const firstName = user.fullName?.split(" ")[0] ?? "there";
+  /*
+   * A name we can always greet somebody by.
+   *
+   * `fullName` is required at registration, so it is normally there — but a migrated v1
+   * account or one whose profile call failed would otherwise render "Hello, " with nothing
+   * after it, which reads as a broken page rather than a missing field.
+   */
+  const firstName =
+    user.fullName?.trim().split(" ")[0] ||
+    (user.role === "broker" ? "there" : "there");
 
   return (
     <>
@@ -135,7 +145,7 @@ export default function Dashboard() {
 
 /** One sentence: the thing most worth doing right now. */
 function NextAction({ summary, isBroker, isAdmin }) {
-  if (!summary) return <p className="lx-note">Gathering your things…</p>;
+  if (!summary) return <Loader size="inline" label="Gathering your things" />;
 
   if (isAdmin && summary.stats?.pendingApprovals > 0) {
     return (
