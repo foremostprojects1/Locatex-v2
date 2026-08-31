@@ -2176,9 +2176,22 @@ textarea:focus-visible,
 
 /* --- the dialog ------------------------------------------------------- */
 
+/*
+ * A notice, read in full.
+ *
+ * Centred explicitly rather than relying on the browser's own `margin: auto` for a modal
+ * dialog — the template's stylesheet resets margins broadly, and a dialog that inherits
+ * `margin: 0` pins itself to the top-left corner of the viewport.
+ *
+ * Wider, too. Notices run to several paragraphs, and 640px gave a column so narrow the
+ * text was mostly hyphenation.
+ */
 .lx-dialog {
-  width: min(640px, calc(100vw - 32px));
-  max-height: min(80vh, 720px);
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(760px, calc(100vw - 40px));
+  max-height: min(85vh, 800px);
   padding: 0;
   border: 0;
   border-radius: 16px;
@@ -2195,9 +2208,10 @@ textarea:focus-visible,
 .lx-dialog__panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: inherit;
-  padding: 26px 28px 28px;
+  gap: 18px;
+  /* The dialog caps the height; the panel is what scrolls inside it. */
+  max-height: min(85vh, 800px);
+  padding: 30px 34px 34px;
   overflow-y: auto;
 }
 
@@ -2237,8 +2251,10 @@ textarea:focus-visible,
 
 /* The admin types paragraphs; they are preserved without accepting any markup. */
 .lx-dialog__body {
-  font-size: 15.5px;
-  line-height: 1.7;
+  /* A comfortable measure for prose, even though the dialog itself is wider. */
+  max-width: 62ch;
+  font-size: 16px;
+  line-height: 1.75;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

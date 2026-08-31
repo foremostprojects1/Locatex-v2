@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "oxlint",
+    "lint": "oxlint && node scripts/check-styles.mjs",
     "preview": "vite preview",
-    "typecheck": "echo \"(web is JS — no typecheck yet)\""
+    "typecheck": "echo \"(web is JS \u2014 no typecheck yet)\"",
+    "check:styles": "node scripts/check-styles.mjs"
   },
   "dependencies": {
     "@locatex/contracts": "workspace:*",

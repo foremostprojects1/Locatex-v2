@@ -42,7 +42,8 @@ export default tseslint.config(
 
   // Vite config runs in Node even though it lives in the web app.
   {
-    files: ['apps/web/*.config.js'],
+    // Build-time scripts for the web app: Node, not a browser.
+    files: ['apps/web/*.config.js', 'apps/web/scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 
