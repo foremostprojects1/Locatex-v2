@@ -26,10 +26,16 @@ const PLACEHOLDER = "/images/locatex/photos/parcels-aerial.jpg";
  */
 export function toCard(listing) {
   const primary = listing.images?.find((image) => image.isPrimary) ?? listing.images?.[0];
-  const place = [listing.location.village, listing.location.taluka, listing.location.district]
-    .filter(Boolean)
-    .map(titleCase)
-    .join(", ");
+  /*
+   * "Rajkot, Rajkot" is what you get when a taluka shares its district's name, which in
+   * Gujarat is most of them. Duplicates are dropped so the line reads as a place rather
+   * than as a stutter.
+   */
+  const place = [...new Set(
+    [listing.location.village, listing.location.taluka, listing.location.district]
+      .filter(Boolean)
+      .map(titleCase),
+  )].join(", ");
 
   return {
     id: listing.id,
@@ -46,6 +52,10 @@ export function toCard(listing) {
     location: place || "Gujarat",
     locationInImage: true,
     title: listing.title,
+    // Where an agent's name and photograph would sit. We have neither publicly — contact
+    // details are withheld from anonymous visitors by design — so the card says what kind
+    // of land it is instead, which is worth more to somebody scanning a grid.
+    kind: listing.propertyType === "plot" ? "NA plot" : "Agricultural land",
     meta: [
       {
         icon: "icon-sqft",

@@ -20,7 +20,7 @@ export default function PropertyCard({ property, className = "", wowDelay }) {
     locationInImage,
     locationTextClass = "text-line-clamp-1",
     title,
-    titleClass = "text-capitalize",
+    titleClass = "",
     titleLinkClass = "link",
     meta = [],
     description,
@@ -28,6 +28,8 @@ export default function PropertyCard({ property, className = "", wowDelay }) {
     avatar,
     avatarClass = "avatar avt-40 round",
     agent,
+    /** Shown where the agent would be, when there is no agent to show. */
+    kind,
     price,
     priceTag = "h6",
   } = property;
@@ -90,11 +92,24 @@ export default function PropertyCard({ property, className = "", wowDelay }) {
           {description && <p className={descriptionClass}>{description}</p>}
         </div>
         <div className="content-bottom">
+          {/*
+            The avatar renders only when there is one.
+            
+            It used to be an unconditional <img src={avatar} alt="avt">, and our listings
+            carry no agent photograph — so every card showed a broken-image icon with the
+            word "avt" beside it. An empty slot is better than a broken one, and a badge
+            saying what kind of land it is beats both.
+          */}
           <div className="d-flex gap-8 align-items-center">
-            <div className={avatarClass}>
-              <img src={avatar} alt="avt" />
-            </div>
-            <span>{agent}</span>
+            {avatar ? (
+              <div className={avatarClass}>
+                <img src={avatar} alt="" />
+              </div>
+            ) : null}
+            {agent ? <span>{agent}</span> : null}
+            {!avatar && !agent && kind ? (
+              <span className="lx-card__kind">{kind}</span>
+            ) : null}
           </div>
           <Price className="price">{price}</Price>
         </div>

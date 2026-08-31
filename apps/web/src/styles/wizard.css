@@ -2802,3 +2802,12 @@ textarea:focus-visible,
   .lx-account-modal .flat-account { grid-template-columns: 1fr; }
   .lx-aside { display: none; }
 }
+
+/* Where the agent's name would be on a listing card. */
+.lx-card__kind {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--line, #eef0f3);
+  font-size: 12px;
+  font-weight: 600;
+}

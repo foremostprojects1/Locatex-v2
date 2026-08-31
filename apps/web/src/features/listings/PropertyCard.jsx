@@ -13,10 +13,13 @@ import { useFavourites } from "./useFavourites";
 export default function PropertyCard({ listing, view = "grid" }) {
   const { isSaved, toggle, canSave } = useFavourites();
   const photo = listing.images?.find((image) => image.isPrimary) ?? listing.images?.[0];
-  const place = [listing.location.village, listing.location.taluka, listing.location.district]
-    .filter(Boolean)
-    .map(titleCase)
-    .join(", ");
+  // Deduplicated: in Gujarat a taluka usually shares its district's name, and
+  // "Rajkot, Rajkot" reads as a stutter rather than as a place.
+  const place = [...new Set(
+    [listing.location.village, listing.location.taluka, listing.location.district]
+      .filter(Boolean)
+      .map(titleCase),
+  )].join(", ");
 
   return (
     <div className={`lx-card${view === "list" ? " is-list" : ""}`}>
