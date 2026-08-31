@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { passwordSchema } from "@locatex/contracts";
 import { useSession } from "../hooks/useSession";
+import PasswordField from "../components/forms/PasswordField";
 
 /**
  * Where the reset link in the email lands.
@@ -82,34 +83,22 @@ export default function ResetPassword() {
 
         {error ? <p className="lx-field__error">{error}</p> : null}
 
-        <fieldset className="box box-fieldset">
-          <label htmlFor="reset-password">New password</label>
-          <input
-            id="reset-password"
-            type="password"
-            className="form-control"
-            autoComplete="new-password"
-            placeholder="At least 10 characters"
-            value={values.password}
-            onChange={(event) =>
-              setValues((current) => ({ ...current, password: event.target.value }))
-            }
-          />
-        </fieldset>
+        <PasswordField
+          id="reset-password"
+          label="New password"
+          placeholder="At least 10 characters"
+          autoComplete="new-password"
+          value={values.password}
+          onChange={(next) => setValues((current) => ({ ...current, password: next }))}
+        />
 
-        <fieldset className="box box-fieldset">
-          <label htmlFor="reset-confirm">Type it again</label>
-          <input
-            id="reset-confirm"
-            type="password"
-            className="form-control"
-            autoComplete="new-password"
-            value={values.confirm}
-            onChange={(event) =>
-              setValues((current) => ({ ...current, confirm: event.target.value }))
-            }
-          />
-        </fieldset>
+        <PasswordField
+          id="reset-confirm"
+          label="Type it again"
+          autoComplete="new-password"
+          value={values.confirm}
+          onChange={(next) => setValues((current) => ({ ...current, confirm: next }))}
+        />
 
         <div className="lx-wizard__actions">
           <button type="submit" className="tf-btn bg-color-primary pd-10" disabled={pending}>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PasswordFieldIcon, UserFieldIcon } from "./accountIcons";
+import PasswordField from "../forms/PasswordField";
 import { useSession } from "../../hooks/useSession";
 import { closeModal } from "./modalControl";
 import AccountAside from "./AccountAside";
@@ -109,20 +110,15 @@ export default function LoginModal() {
                     </div>
                   </fieldset>
 
+                  <PasswordField
+                    id="login-password"
+                    label="Password"
+                    value={values.password}
+                    onChange={(next) => setValues((current) => ({ ...current, password: next }))}
+                    placeholder="Your password"
+                    icon={<PasswordFieldIcon />}
+                  />
                   <fieldset className="box-fieldset">
-                    <label htmlFor="login-password">Password</label>
-                    <div className="ip-field">
-                      <PasswordFieldIcon />
-                      <input
-                        id="login-password"
-                        type="password"
-                        className="form-control"
-                        placeholder="Your password"
-                        autoComplete="current-password"
-                        value={values.password}
-                        onChange={update("password")}
-                      />
-                    </div>
                     <div className="text-forgot text-end">
                       <button
                         type="button"

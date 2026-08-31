@@ -2676,68 +2676,92 @@ textarea:focus-visible,
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  /* The copy sits at the top, where the ground is solid. The illustration fills
+     what is left below it rather than sitting behind the words. */
+  justify-content: flex-start;
   min-height: 100%;
-  padding: 28px 26px;
+  padding: 32px 28px;
   overflow: hidden;
   color: #fff;
-  /* Dusk over farmland: warm at the horizon, deep green above. */
-  background: linear-gradient(170deg, #14372b 0%, #1d5140 45%, #2f6b4a 100%);
+  /* Deep green throughout, warming only near the horizon at the very bottom. */
+  background: linear-gradient(175deg, #143a2d 0%, #164534 60%, #1d5541 100%);
 }
 
-/* --- the drawn scene -------------------------------------------------- */
+/* --- the drawn scene ---------------------------------------------------
+ *
+ * Confined to the lower half and dimmed.
+ *
+ * It first ran the full height of the panel with pale curves and a bright sun
+ * behind the text, and the text lost — headings sat on a shifting ground of
+ * light and dark with no consistent contrast anywhere. Keeping the illustration
+ * below the copy, and laying a scrim over it, means the words always sit on the
+ * same dark ground and the picture is still there underneath them.
+ * --------------------------------------------------------------------- */
 
 .lx-aside__scene {
   position: absolute;
-  inset: 0;
+  inset: 45% 0 0;
   overflow: hidden;
+}
+
+/* Fades the illustration into the panel rather than starting it with an edge. */
+.lx-aside__scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(20 55 43 / 92%) 0%,
+    rgb(20 55 43 / 55%) 30%,
+    rgb(20 55 43 / 35%) 100%
+  );
 }
 
 .lx-aside__sun {
   position: absolute;
-  top: 18%;
-  left: 50%;
-  width: 120px;
-  height: 120px;
+  top: 4%;
+  left: 62%;
+  width: 90px;
+  height: 90px;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(255 214 140 / 90%), rgb(255 214 140 / 0) 68%);
+  background: radial-gradient(circle, rgb(255 214 140 / 45%), rgb(255 214 140 / 0) 70%);
 }
 
-/* Three bands of field, each a flatter curve than the one behind it. */
+/* Three bands of field, each flatter than the one behind it. */
 .lx-aside__field {
   position: absolute;
-  left: -10%;
-  width: 120%;
+  left: -12%;
+  width: 124%;
   border-radius: 50% 50% 0 0;
 }
 
 .lx-aside__field--far {
-  bottom: 34%;
-  height: 120px;
-  background: rgb(255 255 255 / 7%);
+  bottom: 42%;
+  height: 90px;
+  background: rgb(255 255 255 / 5%);
 }
 
 .lx-aside__field--mid {
-  bottom: 22%;
-  height: 140px;
-  background: rgb(255 255 255 / 10%);
+  bottom: 24%;
+  height: 110px;
+  background: rgb(255 255 255 / 7%);
 }
 
 .lx-aside__field--near {
   bottom: 0;
-  height: 200px;
-  background: rgb(0 0 0 / 18%);
+  height: 150px;
+  background: rgb(0 0 0 / 22%);
 }
 
-/* A survey marker on the near field — the thing a plot is identified by. */
+/* A survey marker on the near field — what a plot is actually identified by. */
 .lx-aside__marker {
   position: absolute;
-  bottom: 30%;
-  left: 26%;
-  width: 14px;
-  height: 14px;
-  border: 3px solid rgb(255 255 255 / 85%);
+  bottom: 26%;
+  left: 24%;
+  width: 12px;
+  height: 12px;
+  border: 3px solid rgb(255 255 255 / 55%);
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
 }
@@ -2829,4 +2853,45 @@ textarea:focus-visible,
   margin: 8px 0 0;
   font-size: 13px;
   opacity: 0.7;
+}
+
+/* ---------------------------------------------------------------------------
+ * Password fields, with a reveal.
+ * ------------------------------------------------------------------------- */
+
+.lx-password__field {
+  position: relative;
+}
+
+/* Room for the button, so a long password never runs underneath it. */
+.lx-password__field .form-control {
+  padding-right: 46px;
+}
+
+.lx-password__reveal {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: currentColor;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.lx-password__reveal:hover,
+.lx-password__reveal:focus-visible {
+  opacity: 1;
+}
+
+.lx-password__reveal[aria-pressed="true"] {
+  opacity: 0.9;
+  color: var(--primary, #e91e63);
 }

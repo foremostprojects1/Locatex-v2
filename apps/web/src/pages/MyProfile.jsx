@@ -4,6 +4,7 @@ import { patch, post } from "../services/locatexApi";
 import { useSession } from "../hooks/useSession";
 import { useDistricts } from "../hooks/useReference";
 import Loader from "../components/common/Loader";
+import PasswordField from "../components/forms/PasswordField";
 
 /**
  * Your own account: name, photograph, preferences, password.
@@ -192,11 +193,6 @@ function PasswordForm() {
   const [done, setDone] = useState(false);
   const [pending, setPending] = useState(false);
 
-  const update = (field) => (event) => {
-    setValues((current) => ({ ...current, [field]: event.target.value }));
-    setDone(false);
-  };
-
   const submit = async (event) => {
     event.preventDefault();
     if (pending) return;
@@ -238,37 +234,28 @@ function PasswordForm() {
       {done ? <p className="lx-note">Changed. Your other devices have been signed out.</p> : null}
 
       <div className="box-info-property">
-        <Field label="Current password" required>
-          <input
-            type="password"
-            className="form-control"
+        <PasswordField
+            label="Current password"
             autoComplete="current-password"
             value={values.current}
-            onChange={update("current")}
+            onChange={(next) => { setValues((c) => ({ ...c, current: next })); setDone(false); }}
           />
-        </Field>
 
         <div className="box grid-2 gap-30">
-          <Field label="New password" required>
-            <input
-              type="password"
-              className="form-control"
-              autoComplete="new-password"
+          <PasswordField
+              label="New password"
               placeholder="At least 10 characters"
+              autoComplete="new-password"
               value={values.next}
-              onChange={update("next")}
+              onChange={(next) => { setValues((c) => ({ ...c, next })); setDone(false); }}
             />
-          </Field>
 
-          <Field label="Type it again" required>
-            <input
-              type="password"
-              className="form-control"
+          <PasswordField
+              label="Type it again"
               autoComplete="new-password"
               value={values.confirm}
-              onChange={update("confirm")}
+              onChange={(next) => { setValues((c) => ({ ...c, confirm: next })); setDone(false); }}
             />
-          </Field>
         </div>
       </div>
 

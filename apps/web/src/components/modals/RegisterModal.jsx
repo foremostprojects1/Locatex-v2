@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BUDGET_BANDS, registerSchema } from "@locatex/contracts";
 import { MailFieldIcon, PasswordFieldIcon, UserFieldIcon } from "./accountIcons";
+import PasswordField from "../forms/PasswordField";
 import { useSession } from "../../hooks/useSession";
 import AccountAside from "./AccountAside";
 
@@ -252,35 +253,29 @@ export default function RegisterModal() {
                   />
                 </Field>
 
-                <Field id="register-password" label="Password" error={errors.password}>
-                  <PasswordFieldIcon />
-                  <input
-                    id="register-password"
-                    type="password"
-                    className="form-control"
-                    placeholder="At least 10 characters"
-                    autoComplete="new-password"
-                    value={values.password}
-                    onChange={update("password")}
-                  />
-                </Field>
+                <PasswordField
+                  id="register-password"
+                  label="Password"
+                  value={values.password}
+                  onChange={(next) => setValues((current) => ({ ...current, password: next }))}
+                  placeholder="At least 10 characters"
+                  autoComplete="new-password"
+                  error={errors.password}
+                  icon={<PasswordFieldIcon />}
+                />
 
-                <Field
+                <PasswordField
                   id="register-confirm-password"
                   label="Confirm password"
+                  value={values.confirmPassword}
+                  onChange={(next) =>
+                    setValues((current) => ({ ...current, confirmPassword: next }))
+                  }
+                  placeholder="Type it again"
+                  autoComplete="new-password"
                   error={errors.confirmPassword}
-                >
-                  <PasswordFieldIcon />
-                  <input
-                    id="register-confirm-password"
-                    type="password"
-                    className="form-control"
-                    placeholder="Type it again"
-                    autoComplete="new-password"
-                    value={values.confirmPassword}
-                    onChange={update("confirmPassword")}
-                  />
-                </Field>
+                  icon={<PasswordFieldIcon />}
+                />
 
                 <fieldset className="box-fieldset">
                   <label htmlFor="register-budget">Budget (optional)</label>
