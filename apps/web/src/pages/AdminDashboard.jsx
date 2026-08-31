@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { adminApi } from "../features/admin/adminApi";
 import { usePanel } from "../features/admin/usePanel";
 import ReviewQueue from "../features/admin/ReviewQueue";
@@ -6,6 +6,7 @@ import PeoplePanel from "../features/admin/PeoplePanel";
 import InboxPanel from "../features/admin/InboxPanel";
 import NewsPanel from "../features/admin/NewsPanel";
 import StoragePanel from "../features/admin/StoragePanel";
+import PlacesPanel from "../features/admin/PlacesPanel";
 import { useSession } from "../hooks/useSession";
 
 const TABS = [
@@ -13,6 +14,7 @@ const TABS = [
   { id: "people", label: "People" },
   { id: "inbox", label: "Messages" },
   { id: "news", label: "News" },
+  { id: "places", label: "Places" },
   { id: "storage", label: "Storage" },
 ];
 
@@ -25,7 +27,15 @@ const TABS = [
  */
 export default function AdminDashboard() {
   const { user, loading } = useSession();
-  const [tab, setTab] = useState("queue");
+  /*
+   * The open tab lives in the URL. The dashboard sidebar links straight to
+   * /admin?tab=people, and a tab held only in component state would ignore that and always
+   * open on the queue.
+   */
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") ?? "queue";
+  const setTab = (next) =>
+    setParams(next === "queue" ? {} : { tab: next }, { replace: true });
   const stats = usePanel(() => adminApi.stats(), []);
 
   if (loading) return <div className="widget-box-2 mb-20">One moment…</div>;
@@ -70,6 +80,7 @@ export default function AdminDashboard() {
       {tab === "people" ? <PeoplePanel onChanged={stats.reload} /> : null}
       {tab === "inbox" ? <InboxPanel onChanged={stats.reload} /> : null}
       {tab === "news" ? <NewsPanel /> : null}
+      {tab === "places" ? <PlacesPanel /> : null}
       {tab === "storage" ? <StoragePanel /> : null}
     </div>
   );

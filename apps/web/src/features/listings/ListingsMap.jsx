@@ -16,12 +16,22 @@ import { formatIndianShort } from "@locatex/contracts";
  */
 const GUJARAT_CENTRE = [22.2587, 71.1924];
 
-export default function ListingsMap({ listings, activeId, onSelect, height = 480 }) {
+/** Titles come from brokers, and this text becomes markup rather than React children. */
+const escapeHtml = (value) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+export default function ListingsMap({ listings, activeId, onSelect, onOpen, height = 480 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
 
   const points = useMemo(
     () =>
@@ -89,10 +99,39 @@ export default function ListingsMap({ listings, activeId, onSelect, height = 480
             fillOpacity: 0.12,
           });
 
-      shape.bindTooltip(`${point.title}<br><strong>${point.price}</strong>`, { direction: "top" });
+      /*
+       * A popup, not just a tooltip.
+       *
+       * Clicking a listing on the map used to highlight it in a list that is not on screen
+       * in map view, so nothing appeared to happen. The popup carries the way through to
+       * the listing itself, which is what someone clicking a pin is asking for.
+       *
+       * The escaping matters: a broker's title is their text, and it is being put into
+       * markup here rather than rendered by React.
+       */
+      shape.bindPopup(
+        `<div class="lx-mappop">
+           <strong>${escapeHtml(point.title)}</strong>
+           <span>${escapeHtml(point.price)}</span>
+           <button type="button" data-open="${escapeHtml(point.id)}">See this listing</button>
+         </div>`,
+        { closeButton: true, minWidth: 200 },
+      );
+
       shape.on("click", () => onSelectRef.current?.(point.id));
       shape.addTo(layer);
     }
+
+    // The popup's markup is created by Leaflet, so the handler is attached when it opens
+    // rather than declared in JSX. Delegating from the map means one listener rather than
+    // one per popup, and nothing to remove when a popup closes.
+    map.off('popupopen');
+    map.on('popupopen', (event) => {
+      const button = event.popup.getElement()?.querySelector('[data-open]');
+      button?.addEventListener('click', () => onOpenRef.current?.(button.dataset.open), {
+        once: true,
+      });
+    });
 
     // Fit to what is actually on screen. Padding keeps a circle at the edge from being
     // half cut off, which reads as a bug rather than as a map edge.

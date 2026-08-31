@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { REPORT_REASONS, REPORT_REASON_LABEL } from "@locatex/contracts";
 import { post } from "../services/locatexApi";
 import { useConversation, useThreads } from "../features/chat/useChat";
+import { useRealtime } from "../features/chat/useRealtime";
 import { useSession } from "../hooks/useSession";
 
 /**
@@ -17,8 +18,23 @@ export default function Message() {
   const { threads, loading, reload } = useThreads();
   const activeId = params.get("thread");
 
-  const { messages, loading: loadingMessages, sending, send } = useConversation(activeId, {
-    onRead: reload,
+  const {
+    messages,
+    loading: loadingMessages,
+    sending,
+    send,
+    reload: reloadMessages,
+  } = useConversation(activeId, { onRead: reload });
+
+  /*
+   * A message pushed by the server means "read the thread again", not "here is the text to
+   * append". Re-reading keeps one source of truth — the API — and means a message that
+   * arrives while the socket is reconnecting is not silently missed.
+   */
+  useRealtime(Boolean(user), (incoming) => {
+    if (incoming.threadId === activeId) reloadMessages();
+    // Either way the inbox has changed: an unread count, or a new conversation entirely.
+    reload();
   });
 
   const [draft, setDraft] = useState("");

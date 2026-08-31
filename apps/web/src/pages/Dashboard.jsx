@@ -9,7 +9,7 @@ import BecomeBrokerForm from "../features/broker/BecomeBrokerForm";
  * Where everyone lands after signing in.
  *
  * Different people need different things here, so the page asks who is looking rather than
- * showing one layout to all three. A buyer wants their saved land and their enquiries; a
+ * showing one layout to all three. A buyer wants their favourites and their enquiries; a
  * broker wants to know what is waiting on them; an administrator wants the review queue.
  *
  * It deliberately shows counts and the next action, not charts. Nobody signs in to look at
@@ -90,7 +90,7 @@ export default function Dashboard() {
           </>
         ) : null}
 
-        <Card label="Saved land" value={summary?.favourites} to="/my-favorites" />
+        <Card label="Favourites" value={summary?.favourites} to="/my-favorites" />
         <Card label="My enquiries" value={summary?.enquiries} to="/my-enquiries" />
         <Card label="Unread messages" value={summary?.unread} to="/message" accent />
       </div>

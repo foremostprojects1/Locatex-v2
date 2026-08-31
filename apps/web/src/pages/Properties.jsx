@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useListings, toSearchParams } from "../features/listings/useListings";
 import PropertyCard from "../features/listings/PropertyCard";
 import ListingFilters from "../features/listings/ListingFilters";
@@ -14,6 +14,7 @@ import { useSession } from "../hooks/useSession";
  * a property search and none of which work if the state is only in React.
  */
 export default function Properties() {
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { isSignedIn } = useSession();
   const [activeId, setActiveId] = useState(null);
@@ -98,7 +99,12 @@ export default function Properties() {
 
           {view === "map" ? (
             <>
-              <ListingsMap listings={items} activeId={activeId} onSelect={setActiveId} />
+              <ListingsMap
+              listings={items}
+              activeId={activeId}
+              onSelect={setActiveId}
+              onOpen={(id) => navigate(`/properties/${id}`)}
+            />
               <div className="lx-grid is-compact">
                 {items.map((listing) => (
                   <PropertyCard key={listing.id} listing={listing} view="list" />

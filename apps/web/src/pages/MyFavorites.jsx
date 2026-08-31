@@ -31,7 +31,7 @@ export default function MyFavorites() {
   if (!isSignedIn) {
     return (
       <div className="widget-box-2 mb-20">
-        <h5 className="title">Sign in to see your saved land</h5>
+        <h5 className="title">Sign in to see your favourites</h5>
         <p className="lx-note">
           Saved listings follow your account, so they are there on your phone and your
           computer alike.
@@ -49,7 +49,7 @@ export default function MyFavorites() {
     <div className="lx-saved">
       <header className="lx-listings__head">
         <div>
-          <h1 className="lx-listings__title">Saved land</h1>
+          <h1 className="lx-listings__title">Favourites</h1>
           <p className="lx-listings__count">
             {state.total} saved
             {state.unavailable > 0

@@ -15,6 +15,15 @@ import { EmailLogModel } from '../../infrastructure/db/models/EmailLog.js';
 import { sentInLastDay } from '../../application/mail/mailer.js';
 import { env } from '../../config/env.js';
 import {
+  listDistricts,
+  listTalukas,
+  listVillages,
+  removeReference,
+  upsertDistrict,
+  upsertTaluka,
+  upsertVillage,
+} from '../../application/admin/reference.js';
+import {
   disconnectDrive,
   driveConsentUrl,
   redirectUri,
@@ -294,6 +303,96 @@ adminRouter.post('/storage/disconnect', async (req, res, next) => {
     });
 
     res.json({ connected: false });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Gujarat's own data — districts, talukas, villages
+// ---------------------------------------------------------------------------
+
+/**
+ * Every list here is paged and searched on the server.
+ *
+ * There are nearly nine thousand villages. Sending them all and filtering in the browser
+ * works with the seed data and stops working the first time a district's worth is added —
+ * so the browser never holds more than one page.
+ */
+adminRouter.get('/reference/districts', async (req, res, next) => {
+  try {
+    res.json(await listDistricts(req.query));
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.get('/reference/talukas', async (req, res, next) => {
+  try {
+    res.json(await listTalukas(req.query));
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.get('/reference/villages', async (req, res, next) => {
+  try {
+    res.json(await listVillages(req.query));
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Create or rename. The slug is the identity, so saving the same slug edits in place. */
+for (const [kind, save] of [
+  ['districts', upsertDistrict],
+  ['talukas', upsertTaluka],
+  ['villages', upsertVillage],
+] as const) {
+  adminRouter.put(`/reference/${kind}`, async (req, res, next) => {
+    try {
+      const admin = userOf(req);
+      const result = await save(req.body);
+
+      await recordAudit({
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: `reference.${kind}.save`,
+        subjectType: 'reference',
+        subjectId: String(Object.values(result)[0]),
+        metadata: req.body as Record<string, unknown>,
+      });
+
+      res.json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
+/*
+ * The id travels as a query parameter, not a path segment.
+ *
+ * A village id is `district/taluka/village/pincode` — it contains slashes, so as a path
+ * segment it would need a wildcard route, and Express 5's router treats those differently
+ * enough to be worth avoiding for something this small.
+ */
+adminRouter.delete('/reference/:kind', async (req, res, next) => {
+  try {
+    const admin = userOf(req);
+    const kind = z.enum(['district', 'taluka', 'village']).parse(req.params.kind);
+    const { id } = z.object({ id: z.string().min(1).max(120) }).parse(req.query);
+
+    await removeReference(kind, id);
+    await recordAudit({
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: `reference.${kind}.delete`,
+      subjectType: 'reference',
+      subjectId: id,
+    });
+
+    res.status(204).end();
   } catch (error) {
     next(error);
   }

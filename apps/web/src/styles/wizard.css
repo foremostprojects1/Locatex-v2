@@ -938,9 +938,15 @@
   opacity: 0.7;
 }
 
+/*
+ * The contact panel scrolls with the page.
+ *
+ * It was sticky, which is a reasonable default for a short sidebar and wrong for this one:
+ * with the price, the contact block, the enquiry form and the message button it is taller
+ * than most laptop screens, so it pinned itself and then followed the reader down the page
+ * covering the description they were trying to read.
+ */
 .lx-panel.is-sticky {
-  position: sticky;
-  top: 90px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -2286,4 +2292,269 @@ textarea:focus-visible,
 
 @media (prefers-reduced-motion: reduce) {
   .lx-dialog::backdrop { backdrop-filter: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * The dashboard's navigation.
+ *
+ * Replaces the template's, which carried a hardcoded email and links to pages
+ * that no longer exist.
+ * ------------------------------------------------------------------------- */
+
+.lx-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px 18px;
+}
+
+.lx-side__brand img {
+  max-width: 140px;
+  height: auto;
+}
+
+.lx-side__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 8%);
+}
+
+.lx-side__avatar {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary, #e91e63);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.lx-side__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lx-side__whotext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lx-side__whotext strong {
+  font-size: 14px;
+  /* A long name must not push the email out of the panel. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-side__whotext small {
+  font-size: 11.5px;
+  opacity: 0.65;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-side__whotext .lx-tag {
+  align-self: flex-start;
+  margin: 4px 0 0;
+}
+
+.lx-side__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.lx-side__grouptitle {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.lx-side__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lx-side__nav a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 14.5px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.lx-side__nav a:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.lx-side__nav a.is-active {
+  background: var(--primary, #e91e63);
+  color: #fff;
+}
+
+.lx-side__nav a i {
+  flex: 0 0 auto;
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.lx-side__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.lx-side__foot a,
+.lx-side__foot button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  opacity: 0.75;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.lx-side__foot a:hover,
+.lx-side__foot button:hover { opacity: 1; }
+
+/* A real button, saying what it does. */
+.lx-side__toggle {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+  .lx-side__toggle { display: inline-flex; }
+}
+
+/* --- the map popup ---------------------------------------------------- */
+
+.lx-mappop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lx-mappop strong { font-size: 14px; line-height: 1.35; }
+.lx-mappop span { font-size: 13px; opacity: 0.75; }
+
+.lx-mappop button {
+  margin-top: 6px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary, #e91e63);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------------------
+ * Places — districts, talukas and villages.
+ * ------------------------------------------------------------------------- */
+
+.lx-places__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 14px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--line, #eef0f3);
+}
+
+.lx-places__tabs button {
+  flex: 1 1 auto;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+}
+
+.lx-places__tabs button.is-active {
+  background: var(--surface, #fff);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.lx-places__filters {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 2fr) repeat(auto-fit, minmax(160px, 1fr));
+  margin-bottom: 14px;
+}
+
+.lx-places__count {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line, #eef0f3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The list scrolls inside the panel rather than growing the page without limit — with
+   nine thousand villages, an unbounded list makes the scrollbar useless. */
+.lx-places__list {
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.lx-places__more {
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.lx-places__form {
+  margin-top: 20px;
+}
+
+@media (max-width: 720px) {
+  .lx-places__filters { grid-template-columns: 1fr; }
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "../components/layout/Header";
 import DashboardSidebar from "../components/layout/DashboardSidebar";
+import { BRAND } from "../content/brand";
 import GoTop from "../components/common/GoTop";
 import useBodyClass from "../hooks/useBodyClass";
 import useSwipers from "../hooks/useSwipers";
@@ -43,24 +44,37 @@ export default function DashboardLayout() {
           <DashboardSidebar />
           <div className="main-content">
             <div className={meta.innerClass ?? "main-content-inner"}>
-              <div
-                className="button-show-hide show-mb"
-                role="button"
-                tabIndex={0}
+              {/*
+                A real button that says what it does. "Show Dashboard" was ambiguous —
+                people are already on the dashboard — and it was a div pretending to be a
+                button, so it announced itself as nothing to a screen reader.
+              */}
+              <button
+                type="button"
+                className="lx-side__toggle show-mb"
+                aria-expanded={!sidebarCollapsed}
+                aria-controls="dashboard-nav"
                 onClick={() => setSidebarCollapsed((value) => !value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter")
-                    setSidebarCollapsed((value) => !value);
-                }}
               >
-                <span className="body-1">Show Dashboard</span>
-              </div>
+                <i className="icon icon-list" aria-hidden="true" />
+                <span>{sidebarCollapsed ? "Menu" : "Hide menu"}</span>
+              </button>
               <main id="main-content" tabIndex={-1}>
                 <Outlet />
               </main>
             </div>
+            {/* The template's own credit line, which was still here after sign-in. */}
             <div className={meta.footerClass ?? "footer-dashboard"}>
-              <p>Copyright © 2024 Home Lengo</p>
+              <p>
+                ©{new Date().getFullYear()} {BRAND.name}. Built by{" "}
+                <a
+                  href="https://www.foremostinfosystem.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Foremost Infosystem
+                </a>
+              </p>
             </div>
           </div>
           <div

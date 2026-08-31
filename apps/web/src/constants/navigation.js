@@ -43,7 +43,7 @@ export const MAIN_MENU = [
     children: [
       { label: "Dashboard", to: "/dashboard" },
       { label: "My listings", to: "/my-property" },
-      { label: "Saved land", to: "/my-favorites" },
+      { label: "Favourites", to: "/my-favorites" },
       { label: "My enquiries", to: "/my-enquiries" },
       { label: "Messages", to: "/message" },
       { label: "My profile", to: "/my-profile" },
@@ -55,7 +55,7 @@ export const MAIN_MENU = [
 export const ACCOUNT_MENU = [
   { label: "Dashboard", to: "/dashboard" },
   { label: "My listings", to: "/my-property" },
-  { label: "Saved land", to: "/my-favorites" },
+  { label: "Favourites", to: "/my-favorites" },
   { label: "Messages", to: "/message" },
   { label: "My profile", to: "/my-profile" },
 ];

@@ -13,7 +13,14 @@ import { get, post } from "../../services/locatexApi";
  * slow — a message arriving eight seconds late is a minor annoyance; a phone burning its
  * battery on a one-second poll is a deleted app.
  */
-const POLL_INTERVAL_MS = 8_000;
+/**
+ * The fallback rate, used when no socket is connected.
+ *
+ * Deliberately slow. A message arriving four seconds late is a minor annoyance; a phone
+ * polling every second is a flat battery and a deleted app. When the socket does connect,
+ * messages arrive immediately and this is only a safety net.
+ */
+const POLL_INTERVAL_MS = 4_000;
 
 export function useThreads() {
   const [threads, setThreads] = useState([]);
