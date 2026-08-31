@@ -2187,9 +2187,19 @@ textarea:focus-visible,
  * text was mostly hyphenation.
  */
 .lx-dialog {
+  /*
+   * Centred by translation, not by `inset: 0; margin: auto`.
+   *
+   * That pairing only centres an element with a *definite* height. This dialog's height
+   * comes from its content, so the box stretched to fill the viewport top to bottom and
+   * the panel sat at the top of it — which is what "not opening in the centre" looked
+   * like. A translate is independent of height and needs no measurement.
+   */
   position: fixed;
-  inset: 0;
-  margin: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
   width: min(760px, calc(100vw - 40px));
   max-height: min(85vh, 800px);
   padding: 0;
@@ -2915,9 +2925,12 @@ textarea:focus-visible,
 /* ---------------------------------------------------------------------------
  * The account menu in the header.
  *
- * These were missing entirely — the component shipped without them, so the
- * initials ran straight into the name ("PMPriya") and the dropdown rendered as
- * a column of unstyled links over the page.
+ * Deliberately matched to the navigation dropdowns beside it — same white panel,
+ * same 16px radius, same 280px width, same soft shadow, same 16/24 item padding
+ * and the same blue on hover. The template scopes those rules to
+ * `.main-header .main-menu .navigation`, and this menu sits in `.header-account`
+ * instead, so the values are repeated here rather than inherited. Two dropdowns
+ * side by side that do not match read as two different sites.
  * ------------------------------------------------------------------------- */
 
 .lx-account {
@@ -2928,35 +2941,29 @@ textarea:focus-visible,
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px 6px 6px;
-  border: 1px solid var(--line, #e5e7eb);
+  padding: 4px;
+  border: 0;
   border-radius: 999px;
-  background: var(--surface, #fff);
-  color: inherit;
+  background: none;
+  color: #161e2d;
   font: inherit;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.lx-account__toggle:hover,
-.lx-account__toggle[aria-expanded="true"] {
-  border-color: var(--primary, #e91e63);
 }
 
 .lx-account__avatar {
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   overflow: hidden;
   border-radius: 50%;
-  background: var(--primary, #e91e63);
-  color: #fff;
-  /* Initials, when there is no photograph. Small and tight so two letters fit. */
+  background: #1563df;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.02em;
   line-height: 1;
 }
 
@@ -2967,16 +2974,13 @@ textarea:focus-visible,
 }
 
 .lx-account__name {
-  font-size: 14px;
-  font-weight: 600;
-  /* A long first name must not stretch the header. */
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* A chevron drawn from a border, so there is no icon font to depend on. */
+/* The same caret the navigation items carry, drawn rather than from the icon font. */
 .lx-account__chev {
   width: 7px;
   height: 7px;
@@ -2984,50 +2988,51 @@ textarea:focus-visible,
   border-right: 1.6px solid currentColor;
   border-bottom: 1.6px solid currentColor;
   transform: rotate(45deg) translate(-2px, -2px);
-  opacity: 0.55;
-  transition: transform 0.15s ease;
+  opacity: 0.7;
+  transition: transform 300ms ease;
 }
 
 .lx-account__toggle[aria-expanded="true"] .lx-account__chev {
   transform: rotate(-135deg) translate(-3px, -3px);
 }
 
-/* --- the panel -------------------------------------------------------- */
+.lx-account__toggle:hover,
+.lx-account__toggle[aria-expanded="true"] {
+  color: #1563df;
+}
+
+/* --- the panel, matching the navigation dropdowns ---------------------- */
 
 .lx-account__menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 17px);
   right: 0;
-  z-index: 1000;
-  min-width: 240px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border: 1px solid var(--line, #e5e7eb);
-  border-radius: 12px;
-  background: var(--surface, #fff);
-  box-shadow: 0 4px 6px -2px rgb(16 24 40 / 8%), 0 12px 32px -8px rgb(16 24 40 / 22%);
+  z-index: 20;
+  width: 280px;
+  padding: 8px 0;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px 0 rgb(54 95 104 / 10%);
 }
 
 .lx-account__who {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 8px 10px 12px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--line, #eef0f3);
+  padding: 12px 24px 14px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #eef0f3;
 }
 
 .lx-account__who strong {
   font-size: 14px;
-  line-height: 1.3;
+  font-weight: 600;
+  color: #161e2d;
 }
 
 .lx-account__who small {
   font-size: 12px;
-  opacity: 0.6;
-  /* An email is longer than the panel on a narrow screen. */
+  color: #6b7280;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3035,44 +3040,49 @@ textarea:focus-visible,
 
 .lx-account__menu a,
 .lx-account__menu button {
+  position: relative;
   display: block;
   width: 100%;
-  padding: 9px 10px;
+  padding: 16px 24px;
   border: 0;
-  border-radius: 8px;
   background: none;
-  color: inherit;
-  font: inherit;
+  line-height: 19.6px;
+  font-weight: 600;
   font-size: 14px;
-  text-align: left;
+  color: #161e2d;
+  text-align: start;
   text-decoration: none;
   cursor: pointer;
+  transition: all 500ms ease;
 }
 
 .lx-account__menu a:hover,
 .lx-account__menu button:hover,
 .lx-account__menu a:focus-visible,
 .lx-account__menu button:focus-visible {
-  background: var(--surface-2, #f4f5f7);
-  color: inherit;
+  color: #1563df;
 }
 
-/* Signing out is the one destructive item, and sits apart from the rest. */
+/* Signing out is the one destructive item, and reads as such. */
 .lx-account__menu button {
-  margin-top: 4px;
-  border-top: 1px solid var(--line, #eef0f3);
-  border-radius: 0 0 8px 8px;
-  padding-top: 12px;
+  margin-top: 6px;
+  border-top: 1px solid #eef0f3;
   color: #b42318;
 }
 
+.lx-account__menu button:hover,
+.lx-account__menu button:focus-visible {
+  color: #912018;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .lx-account__toggle,
-  .lx-account__chev { transition: none; }
+  .lx-account__chev,
+  .lx-account__menu a,
+  .lx-account__menu button { transition: none; }
 }
 
 @media (max-width: 575px) {
-  /* The name goes; the avatar alone is enough on a phone header. */
   .lx-account__name { display: none; }
-  .lx-account__menu { min-width: 220px; }
+  .lx-account__menu { width: 240px; }
 }
+
