@@ -1,0 +1,132 @@
+# Render blueprint for LocateX.
+#
+# Two processes from one repository, plus Redis. That shape is not incidental — it is what
+# the application is:
+#
+#   • the web service runs Express and holds the Socket.IO connections that chat uses;
+#   • the worker sends every email, runs the hourly unread digest and the nightly sweep of
+#     abandoned uploads.
+#
+# The site works without the worker, but no email is ever delivered — messages queue and
+# stay queued. Whatever supervises one has to supervise the other.
+#
+# Deploy with: Render dashboard → New → Blueprint → point at this repository.
+
+services:
+  - type: web
+    name: locatex
+    runtime: node
+    plan: starter # free spins down after 15 minutes; the first request then takes ~50s
+    region: singapore # closest Render region to Gujarat
+    branch: main
+    rootDir: locatex
+
+    # Not `--prod`: the migration runner and the seed scripts are dev dependencies, and the
+    # release command below needs them.
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+
+    # Runs on every deploy, before the new version takes traffic. Both are idempotent, so a
+    # redeploy is safe: migrations skip what has run, and the seed upserts.
+    preDeployCommand: pnpm migrate:up && pnpm seed:reference
+
+    startCommand: pnpm start
+    healthCheckPath: /healthz
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_WEB
+        value: "true" # the API also serves the built site, so this is one origin
+      - key: NODE_VERSION
+        value: "22"
+
+      # Generated once by Render and never shown. Changing it signs everyone out.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STORAGE_TOKEN_KEY
+        generateValue: true
+
+      - key: REDIS_URL
+        fromService:
+          name: locatex-redis
+          type: redis
+          property: connectionString
+
+      # Set these in the dashboard — they are credentials, and they do not belong in a file
+      # that lives in the repository.
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: locatex-v2
+      - key: APP_BASE_URL
+        sync: false # https://your-domain — this goes inside every email link
+      - key: API_BASE_URL
+        sync: false # the same value, in single-deployment mode
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_REPLY_TO
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+  - type: worker
+    name: locatex-worker
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    rootDir: locatex
+
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm worker:start
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+
+      # The worker reads the same database and the same queue as the web service, and signs
+      # nothing — but `JWT_SECRET` is required by the config schema, so it takes the web
+      # service's value rather than generating a second one.
+      - key: JWT_SECRET
+        fromService:
+          name: locatex
+          type: web
+          envVarKey: JWT_SECRET
+      - key: REDIS_URL
+        fromService:
+          name: locatex-redis
+          type: redis
+          property: connectionString
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: locatex-v2
+      - key: APP_BASE_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+
+  - type: redis
+    name: locatex-redis
+    plan: free
+    region: singapore
+    # Only our own two services reach it.
+    ipAllowList: []
