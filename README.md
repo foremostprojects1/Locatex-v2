@@ -34,9 +34,9 @@ a VPS under systemd or pm2) configure it as:
 
 | Setting | Value |
 | --- | --- |
-| Build command | `pnpm install --frozen-lockfile && pnpm build` |
+| Build command | `pnpm install --frozen-lockfile --prod=false && pnpm build` — `--prod=false` because `NODE_ENV=production` otherwise skips the devDependencies the build needs |
 | Start command | `pnpm start` |
-| Node version | 22 (`.node-version`) — 20.11+ also runs, but Node 20 is out of support |
+| Node version | 22.20 (`.node-version`) — vite 8 needs `^20.19 \|\| >=22.12`, so 22.11 is too old |
 | Health check | `GET /healthz` |
 
 The background worker is a second process from the same checkout — `pnpm worker` — and is

@@ -19,11 +19,11 @@ services:
     plan: starter # free spins down after 15 minutes; the first request then takes ~50s
     region: singapore # closest Render region to Gujarat
     branch: main
-    rootDir: locatex
 
-    # Not `--prod`: the migration runner and the seed scripts are dev dependencies, and the
-    # release command below needs them.
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    # `--prod=false` is not optional: `NODE_ENV=production` below makes pnpm skip
+    # devDependencies, and the build needs them — vite builds the site, tsc builds the API and
+    # the contracts, and the release command below runs migrate-mongo and tsx.
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build
 
     # Runs on every deploy, before the new version takes traffic. Both are idempotent, so a
     # redeploy is safe: migrations skip what has run, and the seed upserts.
@@ -38,7 +38,7 @@ services:
       - key: SERVE_WEB
         value: "true" # the API also serves the built site, so this is one origin
       - key: NODE_VERSION
-        value: "22"
+        value: "22.20.0"
 
       # Generated once by Render and never shown. Changing it signs everyone out.
       - key: JWT_SECRET
@@ -85,16 +85,15 @@ services:
     plan: starter
     region: singapore
     branch: main
-    rootDir: locatex
 
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build
     startCommand: pnpm worker:start
 
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: "22"
+        value: "22.20.0"
 
       # The worker reads the same database and the same queue as the web service, and signs
       # nothing — but `JWT_SECRET` is required by the config schema, so it takes the web
