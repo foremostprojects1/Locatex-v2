@@ -1,20 +1,10 @@
 import { useEffect, useState } from "react";
 import { AREA_UNIT_LABEL, formatPriceBand } from "@locatex/contracts";
 import { get } from "../../services/locatexApi";
+import { LISTING_PLACEHOLDER } from "../../content/media";
 
-/**
- * Shown when a listing has no photograph of its own.
- *
- * A broken image icon on the home page reads as a broken site. A plain aerial of Gujarat
- * farmland is honest — it is clearly generic, so nobody mistakes it for the actual plot —
- * and the card still works as a card.
- *
- * The path is worth checking against `public/images/locatex/photos/` if it is ever
- * changed. A wrong one does not 404 visibly: the SPA fallback answers any unknown path
- * with `index.html`, so the browser receives HTML where it expected a JPEG and draws
- * nothing at all — which is exactly how this was broken.
- */
-const PLACEHOLDER = "/images/locatex/photos/parcels-aerial.jpg";
+// One definition for every surface that shows a listing — see content/media.js.
+const PLACEHOLDER = LISTING_PLACEHOLDER;
 
 /**
  * Turns a listing from the API into the shape the template's card expects.

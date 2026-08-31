@@ -13,6 +13,7 @@
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 
@@ -151,9 +152,18 @@ async function main(): Promise<void> {
     // Checked by content type, not by status. The SPA fallback answers *any* unknown path
     // with index.html and a 200, so a mistyped image path looks fine to a status check and
     // draws nothing in a browser — which is precisely how the card placeholder broke.
-    const placeholder = await fetch(`${BASE}/images/locatex/photos/parcels-aerial.jpg`);
+    // Read from the web app's own constant rather than repeated here — a rename that
+    // updated one and not the other is exactly the failure this check exists to catch.
+    const mediaSource = await readFile(
+      path.join(REPO_ROOT, 'apps/web/src/content/media.js'),
+      'utf8',
+    );
+    const placeholderPath =
+      /LISTING_PLACEHOLDER = "([^"]+)"/.exec(mediaSource)?.[1] ?? '(not found)';
+
+    const placeholder = await fetch(`${BASE}${placeholderPath}`);
     check(
-      'the fallback listing photograph is a real image, not the app shell',
+      `the fallback listing photograph (${placeholderPath}) is a real image, not the app shell`,
       (placeholder.headers.get('content-type') ?? '').startsWith('image/'),
       placeholder.headers.get('content-type') ?? 'no content type',
     );

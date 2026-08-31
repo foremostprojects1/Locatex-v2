@@ -5,6 +5,7 @@ import { useListing } from "../features/listings/useListings";
 import ListingsMap from "../features/listings/ListingsMap";
 import EnquiryForm from "../features/listings/EnquiryForm";
 import { useSession } from "../hooks/useSession";
+import { LISTING_PLACEHOLDER, LISTING_PLACEHOLDER_NOTE } from "../content/media";
 import { post } from "../services/locatexApi";
 
 /**
@@ -69,13 +70,29 @@ export default function PropertyDetail() {
         </div>
       </header>
 
-      {photos.length > 0 ? (
-        <section className="lx-detail__gallery">
+      {/*
+        Always rendered. Skipping the gallery when a listing has no photographs left a
+        hole between the title and the details that read as a page still loading.
+      */}
+      <section className="lx-detail__gallery">
+        {photos.length > 0 ? (
           <img
             src={photos[activePhoto]?.url}
             alt={photos[activePhoto]?.alt || listing.title}
             className="lx-detail__photo"
           />
+        ) : (
+          <>
+            <img
+              src={LISTING_PLACEHOLDER}
+              alt=""
+              className="lx-detail__photo is-placeholder"
+            />
+            <p className="lx-detail__nophoto">
+              {LISTING_PLACEHOLDER_NOTE} — ask the broker for some.
+            </p>
+          </>
+        )}
           {photos.length > 1 ? (
             <div className="lx-detail__thumbs">
               {photos.map((photo, index) => (
@@ -90,8 +107,7 @@ export default function PropertyDetail() {
               ))}
             </div>
           ) : null}
-        </section>
-      ) : null}
+      </section>
 
       <div className="lx-detail__body">
         <div className="lx-detail__main">

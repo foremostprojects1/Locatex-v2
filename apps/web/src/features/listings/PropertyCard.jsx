@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { AREA_UNIT_LABEL, formatIndianShort } from "@locatex/contracts";
 import { useFavourites } from "./useFavourites";
+import { LISTING_PLACEHOLDER, LISTING_PLACEHOLDER_NOTE } from "../../content/media";
 
 /**
  * One listing in a grid.
@@ -24,12 +25,14 @@ export default function PropertyCard({ listing, view = "grid" }) {
   return (
     <div className={`lx-card${view === "list" ? " is-list" : ""}`}>
       <Link to={`/properties/${listing.id}`} className="lx-card__image">
-        {photo ? (
-          <img src={photo.url} alt={photo.alt || listing.title} loading="lazy" />
-        ) : (
-          <div className="lx-card__placeholder" aria-hidden="true">
-            <span>No photograph yet</span>
-          </div>
+        <img
+          src={photo?.url ?? LISTING_PLACEHOLDER}
+          alt={photo?.alt || listing.title}
+          loading="lazy"
+        />
+        {/* Said plainly, so the stand-in is never taken for the actual land. */}
+        {photo ? null : (
+          <span className="lx-card__nophoto">{LISTING_PLACEHOLDER_NOTE}</span>
         )}
 
         <span className={`lx-card__badge is-${listing.status}`}>
