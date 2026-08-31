@@ -64,6 +64,7 @@ export const LIVE_STATUSES: readonly PropertyStatus[] = ['approved'];
 
 export const PROPERTY_ACTIONS = [
   'submit',
+  'publish',
   'approve',
   'reject',
   'withdraw',
@@ -99,6 +100,22 @@ export interface StatusTransition {
  */
 export const PROPERTY_TRANSITIONS: readonly StatusTransition[] = [
   { from: 'draft', action: 'submit', to: 'pending', by: ['owner', 'admin'] },
+
+  /*
+   * An administrator's own listing goes straight live.
+   *
+   * Review exists so that somebody other than the poster has checked the listing. When the
+   * poster *is* that somebody, sending it to a queue they will immediately approve it from
+   * is ceremony — and worse, it puts the site owner's own listings behind a step they can
+   * forget, so their land sits unpublished for no reason.
+   *
+   * It is a separate action rather than a different destination for `submit`, so the
+   * history records what actually happened: "published", by an admin, on a date. A listing
+   * that never went through review should not look as though it did.
+   */
+  { from: 'draft', action: 'publish', to: 'approved', by: ['admin'] },
+  { from: 'rejected', action: 'publish', to: 'approved', by: ['admin'] },
+  { from: 'withdrawn', action: 'publish', to: 'approved', by: ['admin'] },
   { from: 'pending', action: 'approve', to: 'approved', by: ['admin'] },
   { from: 'pending', action: 'reject', to: 'rejected', by: ['admin'], requiresReason: true },
   { from: 'pending', action: 'withdraw', to: 'withdrawn', by: ['owner', 'admin'] },

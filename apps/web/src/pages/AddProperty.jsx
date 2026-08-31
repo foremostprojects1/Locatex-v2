@@ -46,8 +46,11 @@ export default function AddProperty() {
       <div className="widget-box-2 mb-20">
         <h5 className="title">Saved as a draft</h5>
         <p className="lx-note">
-          “{created.title}” is saved. It is not public yet — submit it for review from your
-          listings, and our team will approve it, usually within a working day.
+          {user.role === "admin"
+            ? `“${created.title}” is saved as a draft. Publish it from your listings and it
+               goes live immediately — your own listings do not wait for review.`
+            : `“${created.title}” is saved. It is not public yet — send it for review from
+               your listings, and our team will approve it, usually within a working day.`}
         </p>
         <div className="lx-wizard__documents">
           <h6 className="lx-section-title">Add the papers</h6>

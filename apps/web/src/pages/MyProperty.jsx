@@ -28,6 +28,9 @@ const STATUS_LABEL = {
 
 const ACTION_LABEL = {
   submit: "Send for review",
+  // Offered only to an administrator, by the state machine — their own listings do not
+  // need a review by themselves.
+  publish: "Publish now",
   withdraw: "Withdraw",
   "mark-sold": "Mark sold",
   "mark-rented": "Mark rented",
@@ -177,7 +180,7 @@ export default function MyProperty() {
                     key={action}
                     type="button"
                     className={
-                      action === "submit"
+                      action === "submit" || action === "publish"
                         ? "tf-btn bg-color-primary pd-10"
                         : "tf-btn style-border pd-10"
                     }

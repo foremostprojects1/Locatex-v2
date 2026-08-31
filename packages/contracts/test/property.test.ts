@@ -63,8 +63,22 @@ describe('the listing lifecycle', () => {
     }
   });
 
-  it('leaves a draft with nothing for an administrator to decide yet', () => {
-    expect(allowedActions('draft', 'admin')).toEqual(['submit']);
+  it('lets an administrator publish their own draft, but not approve one', () => {
+    // Review exists so somebody other than the poster has checked the listing. An admin
+    // publishing their own is that check, so it is a distinct action — and `approve` is
+    // still not among them, because there is nothing in a queue to approve yet.
+    expect(allowedActions('draft', 'admin')).toEqual(['submit', 'publish']);
+    expect(allowedActions('draft', 'admin')).not.toContain('approve');
+
+    // A broker gets no such shortcut.
+    expect(allowedActions('draft', 'owner')).toEqual(['submit']);
+  });
+
+  it('records a published listing as published, never as approved', () => {
+    // The history has to tell the truth: a listing that skipped review must not look as
+    // though it went through one.
+    expect(findTransition('draft', 'publish')?.to).toBe('approved');
+    expect(findTransition('draft', 'publish')?.by).toEqual(['admin']);
   });
 });
 

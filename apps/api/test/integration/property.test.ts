@@ -317,6 +317,74 @@ describe('the approval flow', () => {
   });
 });
 
+describe('an administrator posting their own land', () => {
+  it('publishes straight to live, without a review queue', async () => {
+    const admin = await actor('admin');
+
+    const created = await admin.post('/api/v1/properties').send(listing()).expect(201);
+    const id = created.body.data.id as string;
+
+    // Review exists so somebody other than the poster has checked it. When the poster is
+    // that somebody, a queue they would immediately approve from is ceremony.
+    expect(created.body.actions).toContain('publish');
+
+    const published = await admin
+      .post(`/api/v1/properties/${id}/status`)
+      .send({ action: 'publish' })
+      .expect(200);
+
+    expect(published.body.data.status).toBe('approved');
+    expect(published.body.data.publishedAt).not.toBeNull();
+
+    // And it is genuinely public, not merely marked approved.
+    const asGuest = await request(app).get(`/api/v1/properties/${id}`).expect(200);
+    expect(asGuest.body.data.title).toBe(listing().title);
+  });
+
+  it('records that it was published, not that it was reviewed', async () => {
+    const admin = await actor('admin');
+    const created = await admin.post('/api/v1/properties').send(listing()).expect(201);
+    const id = created.body.data.id as string;
+
+    await admin.post(`/api/v1/properties/${id}/status`).send({ action: 'publish' }).expect(200);
+
+    const detail = await admin.agent.get(`/api/v1/properties/${id}`).expect(200);
+    const history = detail.body.data.statusHistory as Array<{ action: string; byRole: string }>;
+
+    // A listing that never went through review must not look as though it did.
+    expect(history.map((event) => event.action)).toEqual(['publish']);
+    expect(history[0]?.byRole).toBe('admin');
+  });
+
+  it('still refuses to publish something half written', async () => {
+    const admin = await actor('admin');
+    const { PropertyModel } = await import('../../src/infrastructure/db/models/Property.js');
+
+    const created = await admin.post('/api/v1/properties').send(listing()).expect(201);
+    const id = created.body.data.id as string;
+
+    // Skipping review is not skipping the completeness check.
+    await PropertyModel.updateOne({ _id: id }, { $set: { pricePaise: 0 } });
+
+    const response = await admin
+      .post(`/api/v1/properties/${id}/status`)
+      .send({ action: 'publish' })
+      .expect(422);
+    expect(response.body.error.code).toBe('PROPERTY_NOT_SUBMITTABLE');
+  });
+
+  it('is not offered to a broker', async () => {
+    const broker = await actor('broker');
+    const created = await broker.post('/api/v1/properties').send(listing()).expect(201);
+
+    expect(created.body.actions).not.toContain('publish');
+    await broker
+      .post(`/api/v1/properties/${created.body.data.id}/status`)
+      .send({ action: 'publish' })
+      .expect(403);
+  });
+});
+
 describe('what a guest is allowed to see', () => {
   it('gives a band instead of the price, and no way to contact anyone', async () => {
     const broker = await actor('broker');

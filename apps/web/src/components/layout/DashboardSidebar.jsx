@@ -22,10 +22,10 @@ function menuFor(user) {
   return [
     {
       title: "Overview",
-      items: [{ to: "/dashboard", label: "Dashboard", icon: "icon-grid" }],
+      items: [{ to: "/dashboard", label: "My dashboard", icon: "icon-grid" }],
     },
     isAdmin && {
-      title: "Administration",
+      title: "Running the site",
       items: [
         { to: "/admin", label: "Review queue", icon: "icon-file-text" },
         { to: "/admin?tab=people", label: "People & brokers", icon: "icon-user" },

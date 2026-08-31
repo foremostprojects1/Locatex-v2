@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { adminApi } from "../features/admin/adminApi";
 import { usePanel } from "../features/admin/usePanel";
 import ReviewQueue from "../features/admin/ReviewQueue";
@@ -63,6 +63,12 @@ export default function AdminDashboard() {
         <Card label="New messages" value={counts?.contactMessages?.new} accent />
         <Card label="Broker applications" value={counts?.brokerApplications} accent />
       </div>
+
+      <p className="lx-admin__meta lx-admin__intro">
+        Running the site: other people's listings, accounts, messages and the noticeboard.
+        Your own listings and messages are on your{" "}
+        <Link to="/dashboard">personal dashboard</Link>.
+      </p>
 
       <nav className="lx-admin__tabs">
         {TABS.map((entry) => (

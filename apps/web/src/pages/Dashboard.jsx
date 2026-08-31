@@ -77,6 +77,16 @@ export default function Dashboard() {
     <>
       <div className="widget-box-2 mb-20">
         <h5 className="title">Hello, {firstName}</h5>
+        <p className="lx-admin__meta">
+          Your own things — {isBroker ? "your listings, " : ""}your favourites, your
+          enquiries and your messages.
+          {isAdmin ? (
+            <>
+              {" "}
+              Running the site happens on the <Link to="/admin">admin dashboard</Link>.
+            </>
+          ) : null}
+        </p>
 
         {/* The one thing most worth doing, said before any numbers. */}
         <NextAction summary={summary} isBroker={isBroker} isAdmin={isAdmin} />

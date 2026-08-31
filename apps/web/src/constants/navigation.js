@@ -49,7 +49,7 @@ export function mainMenuFor(user) {
   user && {
     label: "My account",
     children: [
-      { label: "Dashboard", to: "/dashboard" },
+      { label: "My dashboard", to: "/dashboard" },
       isAdmin && { label: "Admin dashboard", to: "/admin" },
       isBroker && { label: "My listings", to: "/my-property" },
       { label: "Favourites", to: "/my-favorites" },

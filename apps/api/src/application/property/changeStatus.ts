@@ -26,7 +26,9 @@ export async function changeStatus(
 
   const plan = planStatusChange(property, action, user, reason);
 
-  if (action === 'submit') assertSubmittable(property);
+  // Publishing skips review, not the completeness check — a half-written listing must
+  // not go live just because an administrator wrote it.
+  if (action === 'submit' || action === 'publish') assertSubmittable(property);
 
   property.status = plan.to;
   property.statusHistory.push({
@@ -90,6 +92,7 @@ function applyStamps(
       property.submittedAt = at;
       property.rejectionReason = null;
       break;
+    case 'publish':
     case 'approve':
       property.approvedAt = at;
       property.approvedBy = actorId;
@@ -143,6 +146,8 @@ async function notify(
     return;
   }
 
+  // Nobody is told about a publish: the administrator who did it is the only party, and
+  // emailing them their own action is noise.
   if (action !== 'approve' && action !== 'reject') return;
 
   const broker = await UserModel.findOne({ _id: property.brokerId, deletedAt: null })

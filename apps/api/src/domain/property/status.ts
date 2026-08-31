@@ -114,6 +114,7 @@ const STATUS_WORDS: Record<PropertyStatus, string> = {
 
 const ACTION_WORDS: Record<PropertyAction, string> = {
   submit: 'submitted',
+  publish: 'published',
   approve: 'approved',
   reject: 'rejected',
   withdraw: 'withdrawn',

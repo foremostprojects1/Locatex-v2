@@ -3086,3 +3086,9 @@ textarea:focus-visible,
   .lx-account__menu { width: 240px; }
 }
 
+
+/* The line under an admin page heading saying what the page is for. */
+.lx-admin__intro {
+  max-width: 68ch;
+  margin: -8px 0 18px;
+}
