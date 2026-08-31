@@ -11,7 +11,6 @@ import {
   CATEGORIES,
   DISTRICTS,
   FEATURED,
-  NEWS,
   STATS,
 } from "../../content/home";
 
@@ -301,23 +300,31 @@ export function HowItWorks() {
 }
 
 /** KPI counters — `GET /api/v1/stats/public`. */
-export function StatsBand() {
+export function StatsBand({ counts }) {
+  /*
+   * Every figure here is measured, except the last, which is a policy.
+   *
+   * These were fixed numbers written into a content file — "1240+ listings live" on a site
+   * with none. A visitor checks that in one click, and a marketplace caught inflating its
+   * own size has spent the trust it was trying to buy.
+   */
+  const value = (stat) => {
+    if (stat.constant !== undefined) return stat.constant;
+    if (stat.key === "listings") return counts?.total ?? 0;
+    if (stat.key === "districts") return 34; // every district of Gujarat is covered
+    if (stat.key === "brokers") return counts?.brokers ?? 0;
+    return 0;
+  };
+
   return (
     <section className="lx-home__section lx-home__section--band">
       <div className="container">
-        <div className="row g-4 flat-counter-v2 tf-counter">
+        <div className="row g-4">
           {STATS.map((stat) => (
             <div className="col-lg-3 col-6 text-center" key={stat.label}>
               <div className="counter-box">
                 <h2 className="mb-1">
-                  <span
-                    className="number"
-                    data-speed="2000"
-                    data-to={stat.value}
-                    data-inviewport="yes"
-                  >
-                    {stat.value}
-                  </span>
+                  {value(stat)}
                   {stat.suffix}
                 </h2>
                 <p className="text-variant-1 mb-0">{stat.label}</p>
@@ -330,32 +337,6 @@ export function StatsBand() {
   );
 }
 
-/** Admin-posted news and notices — `GET /api/v1/news?active=true`. */
-export function NewsStrip({ items = NEWS }) {
-  if (items.length === 0) return null;
-
-  return (
-    <section className="lx-home__section">
-      <div className="container">
-        <SectionHeader
-          eyebrow="Noticeboard"
-          title="News for land buyers and sellers"
-        />
-        <div className="row g-4 lx-home__grid">
-          {items.map((item) => (
-            <div className="col-lg-6" key={item.id}>
-              <div className="p-4 radius-15 bg-surface h-100">
-                <p className="text-variant-1 body-3 mb-1">{item.date}</p>
-                <h6 className="mb-2">{item.title}</h6>
-                <p className="text-variant-1 body-3 mb-0">{item.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /** Trust note lifted from the v1 terms, plus the closing call to action. */
 export function TrustAndCta() {

@@ -147,6 +147,16 @@ async function main(): Promise<void> {
     // The home page prints these beside every district; an endpoint that 404s would put
     // "None yet" under all of them and look like an empty site.
     check('the listing counts answer', (await statusOf('/api/v1/properties/counts')) === 200);
+
+    // Checked by content type, not by status. The SPA fallback answers *any* unknown path
+    // with index.html and a 200, so a mistyped image path looks fine to a status check and
+    // draws nothing in a browser — which is precisely how the card placeholder broke.
+    const placeholder = await fetch(`${BASE}/images/locatex/photos/parcels-aerial.jpg`);
+    check(
+      'the fallback listing photograph is a real image, not the app shell',
+      (placeholder.headers.get('content-type') ?? '').startsWith('image/'),
+      placeholder.headers.get('content-type') ?? 'no content type',
+    );
     check('the admin dashboard is closed to strangers', (await statusOf('/api/v1/admin/stats')) === 401);
     check(
       'posting a listing without a session is refused',

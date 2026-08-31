@@ -1,12 +1,12 @@
 import HeroSearch from "../features/home/HeroSearch";
 import { useCounts, useFeatured } from "../features/home/useFeatured";
+import NoticeBoard from "../features/home/NoticeBoard";
 import ToolsSection from "../features/home/Tools";
 import {
   CategoryStrip,
   DistrictGrid,
   FeaturedListings,
   HowItWorks,
-  NewsStrip,
   PromiseStrip,
   StatsBand,
   TrustAndCta,
@@ -35,8 +35,8 @@ export default function Home() {
       <WhyLocatex />
       <HowItWorks />
       <ToolsSection />
-      <StatsBand />
-      <NewsStrip />
+      <StatsBand counts={counts} />
+      <NoticeBoard />
       <TrustAndCta />
     </>
   );

@@ -2,6 +2,7 @@ import { Router, type Router as ExpressRouter } from 'express';
 import { z } from 'zod';
 import { PROPERTY_STATUSES, statusChangeSchema, type PropertyStatus } from '@locatex/contracts';
 import { PropertyModel } from '../../infrastructure/db/models/Property.js';
+import { UserModel } from '../../infrastructure/db/models/User.js';
 import { createProperty, updateProperty } from '../../application/property/writeProperty.js';
 import { changeStatus } from '../../application/property/changeStatus.js';
 import { searchProperties } from '../../application/property/searchProperties.js';
@@ -54,7 +55,7 @@ propertyRouter.get('/', async (req, res, next) => {
  */
 propertyRouter.get('/counts', async (_req, res, next) => {
   try {
-    const [byDistrict, byType] = await Promise.all([
+    const [byDistrict, byType, brokers] = await Promise.all([
       PropertyModel.aggregate<{ _id: string; count: number }>([
         { $match: { status: 'approved', deletedAt: null } },
         { $group: { _id: '$location.district', count: { $sum: 1 } } },
@@ -64,6 +65,9 @@ propertyRouter.get('/counts', async (_req, res, next) => {
         { $match: { status: 'approved', deletedAt: null } },
         { $group: { _id: '$propertyType', count: { $sum: 1 } } },
       ]),
+      // Brokers who have actually been approved — the number the home page calls
+      // "verified sellers", and the only one of those figures that was ever checkable.
+      UserModel.countDocuments({ role: 'broker', status: 'active', deletedAt: null }),
     ]);
 
     const total = byType.reduce((sum, row) => sum + row.count, 0);
@@ -71,6 +75,9 @@ propertyRouter.get('/counts', async (_req, res, next) => {
     res.setHeader('Cache-Control', 'public, max-age=300');
     res.json({
       total,
+      brokers,
+      /** Districts with at least one live listing, as opposed to the 34 we cover. */
+      districtsWithListings: byDistrict.length,
       districts: Object.fromEntries(byDistrict.map((row) => [row._id, row.count])),
       propertyTypes: Object.fromEntries(byType.map((row) => [row._id, row.count])),
     });

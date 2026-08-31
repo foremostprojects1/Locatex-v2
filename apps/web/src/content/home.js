@@ -53,11 +53,19 @@ export const SEARCH_OPTIONS = {
 };
 
 /** Placeholder for `GET /api/v1/stats/public`. */
+/**
+ * The four figures in the band.
+ *
+ * `value` is filled in from the API at render time — these were fixed numbers ("1240+
+ * listings live", "860+ verified sellers") on a site that had none, which is the kind of
+ * claim a visitor can disprove in one click. Only the last is a constant, because it is a
+ * policy rather than a measurement.
+ */
 export const STATS = [
-  { value: 1240, suffix: "+", label: "Listings live" },
-  { value: 34, suffix: "", label: "Districts covered" },
-  { value: 860, suffix: "+", label: "Verified sellers" },
-  { value: 0, suffix: "%", label: "Brokerage charged" },
+  { key: "listings", suffix: "", label: "Listings live" },
+  { key: "districts", suffix: "", label: "Districts covered" },
+  { key: "brokers", suffix: "", label: "Verified brokers" },
+  { key: "brokerage", suffix: "%", label: "Brokerage charged", constant: 0 },
 ];
 
 /** Placeholder for `GET /api/v1/reference/districts?withCounts=true`. */

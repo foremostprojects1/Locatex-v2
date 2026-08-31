@@ -4,9 +4,12 @@ import { CONTACT } from "../content/company";
 /**
  * Contact.
  *
- * The details are the real ones from the live v1 site — the Morbi office, the number people
- * already ring. The form writes to the admin inbox first and emails second, so a message
- * lost to a spam folder is still a message somebody can answer.
+ * The details run across the top in one row rather than down a narrow column. In a column
+ * every one of them wrapped onto a second line — the Morbi address over three, the phone
+ * number over two — which wasted the width the page had and made short facts look long.
+ *
+ * The details are real, from the live v1 site: the office people already visit and the
+ * number they already ring.
  */
 export default function Contact() {
   return (
@@ -19,48 +22,37 @@ export default function Contact() {
         </p>
       </header>
 
-      <div className="lx-contact">
-        <div className="lx-contact__details">
-          <section>
-            <h2>Office</h2>
-            <address className="lx-address">
-              {CONTACT.address.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </address>
-          </section>
+      <div className="lx-contact-bar">
+        <section>
+          <h2>Office</h2>
+          <address>{CONTACT.address.join(", ")}</address>
+        </section>
 
-          <section>
-            <h2>Phone</h2>
-            <a className="lx-contact__link" href={CONTACT.phoneHref}>
-              {CONTACT.phone}
-            </a>
-          </section>
+        <section>
+          <h2>Phone</h2>
+          <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
+        </section>
 
-          <section>
-            <h2>Email</h2>
-            <a className="lx-contact__link" href={`mailto:${CONTACT.email}`}>
-              {CONTACT.email}
-            </a>
-          </section>
+        <section>
+          <h2>Email</h2>
+          <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+        </section>
 
-          <section>
-            <h2>Opening hours</h2>
-            <dl className="lx-hours">
-              {CONTACT.hours.map((entry) => (
-                <div key={entry.day}>
-                  <dt>{entry.day}</dt>
-                  <dd>{entry.time}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        </div>
+        <section>
+          <h2>Open</h2>
+          <p>
+            {CONTACT.hours.map((entry) => `${entry.day}, ${entry.time}`).join(" · ")}
+          </p>
+        </section>
+      </div>
 
-        <div className="lx-contact__form">
-          <h2>Send a message</h2>
-          <ContactForm />
-        </div>
+      <div className="lx-contact-form">
+        <h2>Send a message</h2>
+        <p className="lx-note">
+          Tell us which listing or which district you mean, and we can answer properly first
+          time.
+        </p>
+        <ContactForm />
       </div>
     </div>
   );
