@@ -326,6 +326,30 @@ describe('timed news and advertisements', () => {
     expect(all.body.data.filter((item: { isLive: boolean }) => item.isLive)).toHaveLength(1);
   });
 
+  it('accepts a notice with no end date, cleared the way a form clears it', async () => {
+    const admin = await actor('admin');
+
+    // A form empties a field to null, not to undefined. `z.coerce.date()` turns null into
+    // 1970, which used to sail past the type check and then fail the window rule — so an
+    // optional field could not be left empty, and the error blamed the dates.
+    const created = await admin
+      .post('/api/v1/admin/news')
+      .send({
+        title: 'Jantri rates revised for Morbi',
+        body: 'The revised rates apply to registrations made on or after the first.',
+        startsAt: new Date().toISOString(),
+        endsAt: null,
+        linkUrl: null,
+        imageUrl: null,
+      })
+      .expect(201);
+
+    const live = await request(app).get('/api/v1/news').expect(200);
+    expect(live.body.data.some((item: { id: string }) => item.id === created.body.data.id)).toBe(
+      true,
+    );
+  });
+
   it('refuses a window that ends before it starts', async () => {
     const admin = await actor('admin');
     const now = Date.now();

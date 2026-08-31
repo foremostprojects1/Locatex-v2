@@ -60,7 +60,16 @@ publicRouter.post('/contact', contactLimiter, async (req, res, next) => {
 
 publicRouter.get('/news', async (_req, res, next) => {
   try {
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    /*
+     * Thirty seconds, not five minutes.
+     *
+     * An administrator publishes a notice and immediately opens the home page to check it.
+     * With a five-minute cache the browser served the empty list it had fetched earlier,
+     * and the notice appeared to have not saved at all. `stale-while-revalidate` keeps the
+     * page fast for everyone else — the cached copy is still served instantly, it is just
+     * refreshed in the background rather than held for five minutes.
+     */
+    res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=300');
     res.json({ data: await liveNews() });
   } catch (error) {
     next(error);

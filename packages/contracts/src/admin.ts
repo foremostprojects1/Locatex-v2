@@ -65,10 +65,20 @@ export const newsItemSchema = z
   .object({
     title: z.string().trim().min(4, 'Give it a headline').max(120),
     body: z.string().trim().min(10).max(4000),
-    imageUrl: z.string().url().max(500).optional(),
-    linkUrl: z.string().url().max(500).optional(),
+
+    /*
+     * `nullish`, not `optional`.
+     *
+     * A form clears a field to `null`, not to `undefined` — and `z.coerce.date()` turns
+     * `null` into `new Date(null)`, which is the first of January 1970. That is a perfectly
+     * valid date, so it sailed past the type check and failed the window rule below with
+     * "the end has to come after the start" — making an optional field impossible to leave
+     * empty, and the message no help at all in working out why.
+     */
+    imageUrl: z.string().url().max(500).nullish(),
+    linkUrl: z.string().url().max(500).nullish(),
     startsAt: z.coerce.date(),
-    endsAt: z.coerce.date().optional(),
+    endsAt: z.coerce.date().nullish(),
     isActive: z.boolean().default(true),
     /** Pinned items lead the list regardless of date. */
     isPinned: z.boolean().default(false),

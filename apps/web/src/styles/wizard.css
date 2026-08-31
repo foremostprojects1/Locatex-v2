@@ -2895,3 +2895,168 @@ textarea:focus-visible,
   opacity: 0.9;
   color: var(--primary, #e91e63);
 }
+
+/* ---------------------------------------------------------------------------
+ * The account menu in the header.
+ *
+ * These were missing entirely — the component shipped without them, so the
+ * initials ran straight into the name ("PMPriya") and the dropdown rendered as
+ * a column of unstyled links over the page.
+ * ------------------------------------------------------------------------- */
+
+.lx-account {
+  position: relative;
+}
+
+.lx-account__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.lx-account__toggle:hover,
+.lx-account__toggle[aria-expanded="true"] {
+  border-color: var(--primary, #e91e63);
+}
+
+.lx-account__avatar {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--primary, #e91e63);
+  color: #fff;
+  /* Initials, when there is no photograph. Small and tight so two letters fit. */
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.lx-account__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lx-account__name {
+  font-size: 14px;
+  font-weight: 600;
+  /* A long first name must not stretch the header. */
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A chevron drawn from a border, so there is no icon font to depend on. */
+.lx-account__chev {
+  width: 7px;
+  height: 7px;
+  margin-left: 2px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px);
+  opacity: 0.55;
+  transition: transform 0.15s ease;
+}
+
+.lx-account__toggle[aria-expanded="true"] .lx-account__chev {
+  transform: rotate(-135deg) translate(-3px, -3px);
+}
+
+/* --- the panel -------------------------------------------------------- */
+
+.lx-account__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1000;
+  min-width: 240px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  box-shadow: 0 4px 6px -2px rgb(16 24 40 / 8%), 0 12px 32px -8px rgb(16 24 40 / 22%);
+}
+
+.lx-account__who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line, #eef0f3);
+}
+
+.lx-account__who strong {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.lx-account__who small {
+  font-size: 12px;
+  opacity: 0.6;
+  /* An email is longer than the panel on a narrow screen. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-account__menu a,
+.lx-account__menu button {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lx-account__menu a:hover,
+.lx-account__menu button:hover,
+.lx-account__menu a:focus-visible,
+.lx-account__menu button:focus-visible {
+  background: var(--surface-2, #f4f5f7);
+  color: inherit;
+}
+
+/* Signing out is the one destructive item, and sits apart from the rest. */
+.lx-account__menu button {
+  margin-top: 4px;
+  border-top: 1px solid var(--line, #eef0f3);
+  border-radius: 0 0 8px 8px;
+  padding-top: 12px;
+  color: #b42318;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-account__toggle,
+  .lx-account__chev { transition: none; }
+}
+
+@media (max-width: 575px) {
+  /* The name goes; the avatar alone is enough on a phone header. */
+  .lx-account__name { display: none; }
+  .lx-account__menu { min-width: 220px; }
+}

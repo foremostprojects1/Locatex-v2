@@ -148,7 +148,9 @@ export function FeaturedListings({ items = FEATURED }) {
           title="Featured land across Gujarat"
           text="Verified listings with documents on file. Log in to see the seller's phone number."
         />
-        <div className="row lx-home__grid">
+        {/* `g-4` gives the gutter on both axes — without it the second row of cards sat
+            flush against the bottom of the first. */}
+        <div className="row g-4 lx-home__grid">
           {items.map((property) => (
             <div className="col-xl-4 col-lg-6 col-md-6" key={property.id}>
               <PropertyCard property={property} className="wow fadeInUp" />
