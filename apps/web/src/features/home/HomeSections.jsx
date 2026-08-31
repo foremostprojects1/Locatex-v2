@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { countLabel } from "./useFeatured";
 import PropertyCard from "../../components/common/PropertyCard";
 import {
   BRAND,
@@ -29,7 +30,7 @@ export function SectionHeader({ eyebrow, title, text, center = true }) {
 export function PromiseStrip() {
   return (
     <section
-      className="flat-section-v2 pt-0 pb-0"
+      className="lx-home__section lx-home__section--tight"
       style={{ paddingTop: "48px" }}
     >
       <div className="container">
@@ -82,30 +83,36 @@ export function PromiseStrip() {
   );
 }
 
-/** Land categories — counts come from the reference endpoint once the API exists. */
-export function CategoryStrip() {
+/**
+ * The two kinds of land LocateX carries.
+ *
+ * Counts come from the API, so a type with nothing in it says "None yet" rather than
+ * printing a number a visitor disproves by clicking it.
+ */
+export function CategoryStrip({ counts }) {
   return (
-    <section className="flat-section pb-0">
+    <section className="lx-home__section">
       <div className="container">
         <SectionHeader
           eyebrow="What are you looking for?"
           title="Browse by land type"
-          text="From farmland with a canal touch to approved NA plots — every listing carries its survey number and area."
+          text="Every listing carries its survey number, its area and the district it sits in."
         />
-        <div className="row g-3 mt-3">
+        <div className="row g-3 lx-home__grid">
           {CATEGORIES.map((category) => (
-            <div className="col-lg-2 col-md-4 col-6" key={category.slug}>
+            <div className="col-md-6" key={category.slug}>
               <Link
-                to={`/sidebar-grid?type=${category.slug}`}
-                className="d-block text-center p-4 radius-15 bg-surface hover-img h-100"
+                to={`/properties?propertyType=${category.slug}`}
+                className="d-block p-4 radius-15 bg-surface hover-img h-100 lx-home__tile"
               >
                 <span
                   className={`icon ${category.icon} text-primary`}
                   style={{ fontSize: "32px" }}
                 />
                 <h6 className="mt-3 mb-1 body-2 fw-6">{category.name}</h6>
-                <p className="text-variant-1 body-3 mb-0">
-                  {category.count} listings
+                <p className="text-variant-1 body-3 mb-1">{category.blurb}</p>
+                <p className="text-variant-1 body-3 mb-0 fw-6">
+                  {countLabel(counts?.propertyTypes?.[category.slug])}
                 </p>
               </Link>
             </div>
@@ -120,7 +127,7 @@ export function CategoryStrip() {
 export function FeaturedListings({ items = FEATURED }) {
   if (items.length === 0) {
     return (
-      <section className="flat-section">
+      <section className="lx-home__section">
         <div className="container">
           <SectionHeader eyebrow="Handpicked" title="Featured land" />
           <div className="text-center py-5">
@@ -135,14 +142,14 @@ export function FeaturedListings({ items = FEATURED }) {
   }
 
   return (
-    <section className="flat-section">
+    <section className="lx-home__section">
       <div className="container">
         <SectionHeader
           eyebrow="Handpicked"
           title="Featured land across Gujarat"
           text="Verified listings with documents on file. Log in to see the seller's phone number."
         />
-        <div className="row mt-4">
+        <div className="row lx-home__grid">
           {items.map((property) => (
             <div className="col-xl-4 col-lg-6 col-md-6" key={property.id}>
               <PropertyCard property={property} className="wow fadeInUp" />
@@ -150,7 +157,7 @@ export function FeaturedListings({ items = FEATURED }) {
           ))}
         </div>
         <div className="text-center mt-3">
-          <Link to="/sidebar-grid" className="tf-btn primary size-1">
+          <Link to="/properties" className="tf-btn primary size-1">
             See all listings
           </Link>
         </div>
@@ -160,21 +167,35 @@ export function FeaturedListings({ items = FEATURED }) {
 }
 
 /** District grid — counts from the reference endpoint. */
-export function DistrictGrid() {
+export function DistrictGrid({ counts }) {
+  /*
+   * Districts that actually have land, busiest first.
+   *
+   * Printing all 34 with "None yet" under 30 of them is honest and useless — it reads as
+   * an empty site. Until listings exist anywhere, the full set is shown as a statement of
+   * where LocateX works; after that the section becomes a real index of where the land is.
+   */
+  const withListings = DISTRICTS.filter((district) => counts?.districts?.[district.slug]);
+  const shown = withListings.length > 0 ? withListings : DISTRICTS;
+
   return (
-    <section className="flat-section bg-surface">
+    <section className="lx-home__section lx-home__section--tinted">
       <div className="container">
         <SectionHeader
           eyebrow="Where we work"
           title="Land by district"
-          text="Search the way land is described here — district, taluka and village."
+          text={
+            counts?.total
+              ? "Search the way land is described here — district, taluka and village."
+              : "All 34 districts of Gujarat, down to taluka and village."
+          }
         />
-        <div className="row g-3 mt-3">
-          {DISTRICTS.map((district) => (
+        <div className="row g-3 lx-home__grid">
+          {shown.map((district) => (
             <div className="col-lg-4 col-md-6 col-6" key={district.slug}>
               <div className="box-location wow fadeInUp">
                 <Link
-                  to={`/sidebar-grid?district=${district.slug}`}
+                  to={`/properties?district=${district.slug}`}
                   className="image img-style"
                 >
                   <img
@@ -186,14 +207,14 @@ export function DistrictGrid() {
                 <div className="content">
                   <h6>
                     <Link
-                      to={`/sidebar-grid?district=${district.slug}`}
+                      to={`/properties?district=${district.slug}`}
                       className="link"
                     >
                       {district.name}
                     </Link>
                   </h6>
                   <p className="text-variant-1 body-3 mb-0">
-                    {district.count} listings
+                    {countLabel(counts?.districts?.[district.slug])}
                   </p>
                 </div>
               </div>
@@ -208,7 +229,7 @@ export function DistrictGrid() {
 /** Why LocateX — the v1 value list. */
 export function WhyLocatex() {
   return (
-    <section className="flat-section">
+    <section className="lx-home__section">
       <div className="container">
         <div className="row align-items-center g-4">
           <div className="col-lg-5">
@@ -247,13 +268,13 @@ export function WhyLocatex() {
 /** Three-step explanation of the flow. */
 export function HowItWorks() {
   return (
-    <section className="flat-section bg-surface">
+    <section className="lx-home__section lx-home__section--tinted">
       <div className="container">
         <SectionHeader
           eyebrow="How it works"
           title="Sell your land in three steps"
         />
-        <div className="row g-4 mt-3">
+        <div className="row g-4 lx-home__grid">
           {HOW_IT_WORKS.map((item, index) => (
             <div className="col-lg-4" key={item.step}>
               <div className="p-4 bg-white radius-15 h-100 wow fadeInUp">
@@ -269,7 +290,7 @@ export function HowItWorks() {
             </div>
           ))}
         </div>
-        <div className="text-center mt-4">
+        <div className="text-center lx-home__cta">
           <Link to="/add-property" className="tf-btn primary size-1">
             Post your land — free
           </Link>
@@ -282,7 +303,7 @@ export function HowItWorks() {
 /** KPI counters — `GET /api/v1/stats/public`. */
 export function StatsBand() {
   return (
-    <section className="flat-section-v3 py-5 bg-primary-new">
+    <section className="lx-home__section lx-home__section--band">
       <div className="container">
         <div className="row g-4 flat-counter-v2 tf-counter">
           {STATS.map((stat) => (
@@ -314,13 +335,13 @@ export function NewsStrip({ items = NEWS }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="flat-section pt-0">
+    <section className="lx-home__section">
       <div className="container">
         <SectionHeader
           eyebrow="Noticeboard"
           title="News for land buyers and sellers"
         />
-        <div className="row g-4 mt-3">
+        <div className="row g-4 lx-home__grid">
           {items.map((item) => (
             <div className="col-lg-6" key={item.id}>
               <div className="p-4 radius-15 bg-surface h-100">
@@ -339,7 +360,7 @@ export function NewsStrip({ items = NEWS }) {
 /** Trust note lifted from the v1 terms, plus the closing call to action. */
 export function TrustAndCta() {
   return (
-    <section className="flat-section pt-0">
+    <section className="lx-home__section">
       <div className="container">
         <div className="row g-4 align-items-center">
           <div className="col-lg-7">

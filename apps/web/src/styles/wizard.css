@@ -1822,3 +1822,75 @@ textarea:focus-visible,
 @media (max-width: 860px) {
   .lx-contact { grid-template-columns: 1fr; }
 }
+
+/* ---------------------------------------------------------------------------
+ * Home page rhythm.
+ *
+ * The template shipped a mix of `flat-section`, `flat-section pt-0`,
+ * `flat-section-v2 pb-0` and `flat-section-v3 py-5`, so the gap between any two
+ * sections depended on which pair happened to be adjacent. One class sets the
+ * rhythm, and the variants only change the ground colour or tighten a section
+ * that genuinely sits against the one above it.
+ * ------------------------------------------------------------------------- */
+
+.lx-home__section {
+  /* One value, used everywhere, so every gap between sections is identical. */
+  padding-block: clamp(48px, 7vw, 84px);
+}
+
+/* A tinted band still needs its own padding, or the colour hugs the text. */
+.lx-home__section--tinted {
+  background: var(--surface-2, #f6f7f9);
+}
+
+.lx-home__section--band {
+  padding-block: clamp(36px, 5vw, 56px);
+}
+
+/* Sits directly beneath the section above it, sharing one gap rather than two. */
+.lx-home__section--tight {
+  padding-block-start: 0;
+}
+
+/* Consecutive tinted sections would otherwise read as one enormous block. */
+.lx-home__section--tinted + .lx-home__section--tinted {
+  padding-block-start: 0;
+}
+
+/* The gap between a section's heading and its content, everywhere. */
+.lx-home__grid {
+  margin-top: 28px;
+}
+
+.lx-home__tile {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lx-home__tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -14px rgb(0 0 0 / 30%);
+}
+
+/* A call to action needs room above it, or it reads as part of the last item. */
+.lx-home__cta {
+  margin-top: 36px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-home__tile { transition: none; }
+  .lx-home__tile:hover { transform: none; }
+}
+
+/* The maker's credit in the footer — legible against the dark bar, not shouting. */
+.lx-footer__maker {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.85;
+}
+
+.lx-footer__maker:hover,
+.lx-footer__maker:focus-visible {
+  opacity: 1;
+  color: inherit;
+}

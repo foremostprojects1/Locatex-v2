@@ -68,7 +68,7 @@ export default function HeroSearch() {
                 <div className="tab-content">
                   <div className="tab-pane fade active show" role="tabpanel">
                     <div className="form-sl">
-                      <form method="get" action="/sidebar-grid">
+                      <form method="get" action="/properties">
                         <input
                           type="hidden"
                           name="listingType"

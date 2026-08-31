@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { AREA_UNIT_LABEL, formatPriceBand } from "@locatex/contracts";
 import { get } from "../../services/locatexApi";
 
+/**
+ * Shown when a listing has no photograph of its own.
+ *
+ * A broken image icon on the home page reads as a broken site. A plain aerial of Gujarat
+ * farmland is honest — it is clearly generic, so nobody mistakes it for the actual plot —
+ * and the card still works as a card.
+ */
 const PLACEHOLDER = "/images/locatex/stock/parcels-aerial.jpg";
 
 /**
@@ -86,4 +93,37 @@ export function useFeatured(limit = 6) {
   }, [limit]);
 
   return { listings, loading };
+}
+
+
+/**
+ * How many live listings each district and land type actually has.
+ *
+ * The home page used to print fixed numbers — "186 listings" under Morbi when there were
+ * none. A count a visitor disproves by clicking is worse than no count, so a district with
+ * nothing now says so instead.
+ */
+export function useCounts() {
+  const [counts, setCounts] = useState({ total: 0, districts: {}, propertyTypes: {} });
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    get("/properties/counts", { signal: controller.signal })
+      .then(setCounts)
+      .catch((cause) => {
+        // The page still renders; the counts simply do not appear.
+        if (cause.name !== "AbortError") setCounts({ total: 0, districts: {}, propertyTypes: {} });
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return counts;
+}
+
+/** "3 listings", "1 listing", or an honest "None yet". */
+export function countLabel(count) {
+  if (!count) return "None yet";
+  return `${count} listing${count === 1 ? "" : "s"}`;
 }

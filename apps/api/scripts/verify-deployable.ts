@@ -144,6 +144,9 @@ async function main(): Promise<void> {
     check('the reference API answers', (await statusOf('/api/v1/reference/districts')) === 200);
     check('the listings API answers', (await statusOf('/api/v1/properties')) === 200);
     check('the news endpoint answers', (await statusOf('/api/v1/news')) === 200);
+    // The home page prints these beside every district; an endpoint that 404s would put
+    // "None yet" under all of them and look like an empty site.
+    check('the listing counts answer', (await statusOf('/api/v1/properties/counts')) === 200);
     check('the admin dashboard is closed to strangers', (await statusOf('/api/v1/admin/stats')) === 401);
     check(
       'posting a listing without a session is refused',

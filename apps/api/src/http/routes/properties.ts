@@ -43,6 +43,42 @@ propertyRouter.get('/', async (req, res, next) => {
   }
 });
 
+/**
+ * How many live listings there are, by district and by land type.
+ *
+ * The home page used to print invented numbers beside each district — "186 listings" under
+ * Morbi when there were none at all. A number a visitor can disprove by clicking is worse
+ * than no number, so these are counted, and a district with nothing in it says so.
+ *
+ * One aggregation rather than a query per district: there are 34 of them.
+ */
+propertyRouter.get('/counts', async (_req, res, next) => {
+  try {
+    const [byDistrict, byType] = await Promise.all([
+      PropertyModel.aggregate<{ _id: string; count: number }>([
+        { $match: { status: 'approved', deletedAt: null } },
+        { $group: { _id: '$location.district', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      PropertyModel.aggregate<{ _id: string; count: number }>([
+        { $match: { status: 'approved', deletedAt: null } },
+        { $group: { _id: '$propertyType', count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const total = byType.reduce((sum, row) => sum + row.count, 0);
+
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json({
+      total,
+      districts: Object.fromEntries(byDistrict.map((row) => [row._id, row.count])),
+      propertyTypes: Object.fromEntries(byType.map((row) => [row._id, row.count])),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /** A broker's own listings, in every status including drafts. */
 propertyRouter.get('/mine', requireRole('broker', 'admin'), async (req, res, next) => {
   try {

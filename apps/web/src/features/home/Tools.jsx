@@ -164,7 +164,7 @@ export function EmiCalculator() {
 
 export default function ToolsSection() {
   return (
-    <section className="flat-section bg-surface" id="tools">
+    <section className="lx-home__section lx-home__section--tinted" id="tools">
       <div className="container">
         <SectionHeader
           eyebrow="Free tools"

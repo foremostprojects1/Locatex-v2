@@ -236,7 +236,19 @@ export default function Footer() {
         <div className="container">
           <div className="content-footer-bottom">
             <div className="copyright">
-              ©{new Date().getFullYear()} {BRAND.name}. All rights reserved.
+              ©{new Date().getFullYear()} {BRAND.name}. All rights reserved. Built by{" "}
+              {/*
+                External, so it opens away from the site and carries `noreferrer` — without
+                it the new tab can reach back at this one through `window.opener`.
+              */}
+              <a
+                href="https://www.foremostinfosystem.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="lx-footer__maker"
+              >
+                Foremost Infosystem
+              </a>
             </div>
             <ul className="menu-bottom">
               {BOTTOM_LINKS.map((link) => (

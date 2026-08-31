@@ -65,31 +65,26 @@ export const DISTRICTS = [
   {
     slug: "morbi",
     name: "Morbi",
-    count: 186,
     image: photo("parcels-aerial-sq"),
   },
   {
     slug: "rajkot",
     name: "Rajkot",
-    count: 154,
     image: photo("wheat-field-sq"),
   },
   {
     slug: "ahmedabad",
     name: "Ahmedabad",
-    count: 131,
     image: photo("village-aerial-sq"),
   },
   {
     slug: "surendranagar",
     name: "Surendranagar",
-    count: 98,
     image: photo("golden-field-sq"),
   },
   {
     slug: "jamnagar",
     name: "Jamnagar",
-    count: 74,
     image: photo("terraced-fields-sq"),
   },
   { slug: "mahesana", name: "Mahesana", count: 61, image: photo("harvest-sq") },
@@ -259,33 +254,26 @@ export const FEATURED = [
 ];
 
 /** Land categories for the browse strip. */
+/**
+ * The land types the product actually carries.
+ *
+ * `slug` is the API's own `propertyType` value, so the link filters rather than 404s — the
+ * old list used invented slugs like "agriculture" and "farmhouse" that no endpoint knew,
+ * and pointed at template pages that have since been removed.
+ */
 export const CATEGORIES = [
   {
-    slug: "agriculture",
+    slug: "land",
     name: "Agricultural land",
-    count: 612,
     icon: "icon-farm",
-  },
-  { slug: "na", name: "NA plots", count: 284, icon: "icon-land" },
-  {
-    slug: "farmhouse",
-    name: "Farm houses",
-    count: 147,
-    icon: "icon-house-fill",
+    blurb: "Farmland with canal, borewell or well water.",
   },
   {
-    slug: "residential",
-    name: "Residential plots",
-    count: 121,
-    icon: "icon-apartment",
+    slug: "plot",
+    name: "NA plots",
+    icon: "icon-land",
+    blurb: "Converted, non-agricultural plots.",
   },
-  {
-    slug: "commercial",
-    name: "Commercial",
-    count: 48,
-    icon: "icon-commercial",
-  },
-  { slug: "industrial", name: "Industrial", count: 28, icon: "icon-warehouse" },
 ];
 
 /** Placeholder for `GET /api/v1/news?active=true` — admin-posted, time-windowed. */
